@@ -22,7 +22,9 @@
 #if LV_DRAW_SW_SUPPORT_RGB888
     #include "lv_draw_sw_blend_to_rgb888.h"
 #endif
-
+#if LV_DRAW_SW_SUPPORT_I1
+    #include "lv_draw_sw_blend_to_i1.h"
+#endif
 #if LV_USE_DRAW_SW
 
 /*********************
@@ -111,6 +113,11 @@ void lv_draw_sw_blend(lv_draw_unit_t * draw_unit, const lv_draw_sw_blend_dsc_t *
                 lv_draw_sw_blend_color_to_al88(&fill_dsc);
                 break;
 #endif
+#if LV_DRAW_SW_SUPPORT_I1
+            case LV_COLOR_FORMAT_I1:
+                lv_draw_sw_blend_color_to_i1(&fill_dsc);
+                break;
+#endif
             default:
                 break;
         }
@@ -186,6 +193,11 @@ void lv_draw_sw_blend(lv_draw_unit_t * draw_unit, const lv_draw_sw_blend_dsc_t *
 #if LV_DRAW_SW_SUPPORT_AL88
             case LV_COLOR_FORMAT_AL88:
                 lv_draw_sw_blend_image_to_al88(&image_dsc);
+                break;
+#endif
+#if LV_DRAW_SW_SUPPORT_I1
+            case LV_COLOR_FORMAT_I1:
+                lv_draw_sw_blend_image_to_i1(&image_dsc);
                 break;
 #endif
             default:
