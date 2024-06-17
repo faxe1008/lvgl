@@ -867,30 +867,35 @@ static void LV_ATTRIBUTE_FAST_MEM rgb565_image_blend(_lv_draw_sw_blend_image_dsc
 
 static inline void LV_ATTRIBUTE_FAST_MEM blend_non_normal_pixel(uint8_t * dest, lv_color32_t src, lv_blend_mode_t mode)
 {
-    uint8_t res;
-    int32_t src_lumi = lv_color32_luminance(src);
-    uint8_t dest_val = (*dest & (1 << (7 - (*dest & 7)))) ? 255 : 0; // Convert the I1 bit to full 0 or 255 luminance
-    switch(mode) {
-        case LV_BLEND_MODE_ADDITIVE:
-            res = LV_MIN(dest_val + src_lumi, 255);
-            break;
-        case LV_BLEND_MODE_SUBTRACTIVE:
-            res = LV_MAX(dest_val - src_lumi, 0);
-            break;
-        case LV_BLEND_MODE_MULTIPLY:
-            res = (dest_val * src_lumi) >> 8;
-            break;
-        default:
-            LV_LOG_WARN("Not supported blend mode: %d", mode);
-            return;
-    }
-    //lv_color_1bit_blend(res, &dest_val, src.alpha);
-    //if(dest_val) {
-    //    *dest |= (1 << (7 - (*dest & 7))); // Set bit to 1
-    //}
-    //else {
-    //    *dest &= ~(1 << (7 - (*dest & 7))); // Set bit to 0
-    //}
+    LV_UNUSED(dest);
+    LV_UNUSED(src);
+    LV_UNUSED(mode);
+    return;
+
+    //    uint8_t res;
+    //    int32_t src_lumi = lv_color32_luminance(src);
+    //    uint8_t dest_val = (*dest & (1 << (7 - (*dest & 7)))) ? 255 : 0; // Convert the I1 bit to full 0 or 255 luminance
+    //    switch(mode) {
+    //        case LV_BLEND_MODE_ADDITIVE:
+    //            res = LV_MIN(dest_val + src_lumi, 255);
+    //            break;
+    //        case LV_BLEND_MODE_SUBTRACTIVE:
+    //            res = LV_MAX(dest_val - src_lumi, 0);
+    //            break;
+    //        case LV_BLEND_MODE_MULTIPLY:
+    //            res = (dest_val * src_lumi) >> 8;
+    //            break;
+    //        default:
+    //            LV_LOG_WARN("Not supported blend mode: %d", mode);
+    //            return;
+    //    }
+    //    lv_color_1bit_blend(res, &dest_val, src.alpha);
+    //    if(dest_val) {
+    //        *dest |= (1 << (7 - (*dest & 7))); // Set bit to 1
+    //    }
+    //    else {
+    //        *dest &= ~(1 << (7 - (*dest & 7))); // Set bit to 0
+    //    }
 }
 
 static inline void LV_ATTRIBUTE_FAST_MEM lv_color_8_8_mix(const uint8_t src, uint8_t * dest, uint8_t mix)

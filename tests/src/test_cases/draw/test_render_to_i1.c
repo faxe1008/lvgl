@@ -17,6 +17,7 @@ void tearDown(void)
 
 void test_render_to_i1(void)
 {
+#if LV_BIN_DECODER_RAM_LOAD
     lv_display_set_color_format(NULL, LV_COLOR_FORMAT_I1);
 
     lv_opa_t opa_values[2] = {0xff, 0x80};
@@ -32,6 +33,10 @@ void test_render_to_i1(void)
             TEST_ASSERT_EQUAL_SCREENSHOT(buf);
         }
     }
+#else
+    /*Without LV_BIN_DECODER_RAM_LOAD can't test rotated images*/
+    TEST_PASS();
+#endif
 }
 
 #endif
