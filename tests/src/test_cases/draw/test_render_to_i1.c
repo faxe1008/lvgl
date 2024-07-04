@@ -20,7 +20,7 @@ void test_render_to_i1(void)
 #if LV_BIN_DECODER_RAM_LOAD
     lv_display_set_color_format(NULL, LV_COLOR_FORMAT_I1);
 
-    lv_opa_t opa_values[2] = {0xff, 0x80};
+    lv_opa_t opa_values[2] = {0xff, 0xc0};
     uint32_t opa;
     for(opa = 0; opa < 2; opa++) {
         uint32_t i;
