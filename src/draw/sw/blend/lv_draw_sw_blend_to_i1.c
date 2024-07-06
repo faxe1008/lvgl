@@ -61,9 +61,6 @@ static void /* LV_ATTRIBUTE_FAST_MEM */ rgb888_image_blend(_lv_draw_sw_blend_ima
 
 static inline void /* LV_ATTRIBUTE_FAST_MEM */ lv_color_8_8_mix(const uint8_t src, uint8_t * dest, uint8_t mix);
 
-static inline void /* LV_ATTRIBUTE_FAST_MEM */ lv_color_1bit_blend(const uint8_t src, uint8_t * dest, int32_t x,
-                                                                   uint8_t mix);
-
 static inline void /* LV_ATTRIBUTE_FAST_MEM */ blend_non_normal_pixel(uint8_t * dest_buf, int32_t dest_x,
                                                                       lv_color32_t src,
                                                                       lv_blend_mode_t mode);
@@ -458,14 +455,14 @@ static void LV_ATTRIBUTE_FAST_MEM i1_image_blend(_lv_draw_sw_blend_image_dsc_t *
         lv_color32_t src_argb;
         for(y = 0; y < h; y++) {
             for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
-                src_argb.red = get_bit(src_buf_i1, src_x) ? 255 : 0;
+                src_argb.red = get_bit(src_buf_i1, src_x) * 255;
                 src_argb.green = src_argb.red;
                 src_argb.blue = src_argb.red;
                 if(mask_buf == NULL) {
-                    src_argb.alpha = opa;
+                    src_argb.alpha = LV_OPA_MIX2(opa, 255);
                 }
                 else {
-                    src_argb.alpha = LV_OPA_MIX2(mask_buf[dest_x + bit_ofs], opa);
+                    src_argb.alpha = LV_OPA_MIX3(mask_buf[dest_x], opa, 255);
                 }
                 blend_non_normal_pixel(dest_buf_i1, dest_x + bit_ofs, src_argb, dsc->blend_mode);
             }
@@ -507,7 +504,7 @@ static void LV_ATTRIBUTE_FAST_MEM l8_image_blend(_lv_draw_sw_blend_image_dsc_t *
                             clear_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                     }
-                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride / 8);
+                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride);
                     src_buf_l8 = drawbuf_next_row(src_buf_l8, src_stride);
                 }
             }
@@ -515,18 +512,18 @@ static void LV_ATTRIBUTE_FAST_MEM l8_image_blend(_lv_draw_sw_blend_image_dsc_t *
         else if(mask_buf == NULL && opa < LV_OPA_MAX) {
             if(LV_RESULT_INVALID == LV_DRAW_SW_L8_BLEND_NORMAL_TO_I1_WITH_OPA(dsc)) {
                 for(y = 0; y < h; y++) {
-                    for(src_x = 0; src_x < w; src_x++) {
+                    for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
                         uint8_t src_luminance = src_buf_l8[src_x];
-                        uint8_t dest_val = get_bit(dest_buf_i1, src_x) ? 255 : 0;
+                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src_luminance, &dest_val, opa);
                         if(dest_val > I1_LUM_THRESHOLD) {
-                            set_bit(dest_buf_i1, src_x);
+                            set_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                         else {
-                            clear_bit(dest_buf_i1, src_x);
+                            clear_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                     }
-                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride / 8);
+                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride);
                     src_buf_l8 = drawbuf_next_row(src_buf_l8, src_stride);
                 }
             }
@@ -534,19 +531,19 @@ static void LV_ATTRIBUTE_FAST_MEM l8_image_blend(_lv_draw_sw_blend_image_dsc_t *
         else if(mask_buf && opa >= LV_OPA_MAX) {
             if(LV_RESULT_INVALID == LV_DRAW_SW_L8_BLEND_NORMAL_TO_I1_WITH_MASK(dsc)) {
                 for(y = 0; y < h; y++) {
-                    for(src_x = 0; src_x < w; src_x++) {
+                    for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
                         uint8_t src_luminance = src_buf_l8[src_x];
                         uint8_t mask_val = mask_buf[src_x];
-                        uint8_t dest_val = get_bit(dest_buf_i1, src_x) ? 255 : 0;
+                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src_luminance, &dest_val, mask_val);
                         if(dest_val > I1_LUM_THRESHOLD) {
-                            set_bit(dest_buf_i1, src_x);
+                            set_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                         else {
-                            clear_bit(dest_buf_i1, src_x);
+                            clear_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                     }
-                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride / 8);
+                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride);
                     src_buf_l8 = drawbuf_next_row(src_buf_l8, src_stride);
                     mask_buf += mask_stride;
                 }
@@ -555,19 +552,19 @@ static void LV_ATTRIBUTE_FAST_MEM l8_image_blend(_lv_draw_sw_blend_image_dsc_t *
         else if(mask_buf && opa < LV_OPA_MAX) {
             if(LV_RESULT_INVALID == LV_DRAW_SW_L8_BLEND_NORMAL_TO_I1_MIX_MASK_OPA(dsc)) {
                 for(y = 0; y < h; y++) {
-                    for(src_x = 0; src_x < w; src_x++) {
+                    for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
                         uint8_t src_luminance = src_buf_l8[src_x];
                         uint8_t mask_val = mask_buf[src_x];
-                        uint8_t dest_val = get_bit(dest_buf_i1, src_x) ? 255 : 0;
+                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src_luminance, &dest_val, LV_OPA_MIX2(mask_val, opa));
                         if(dest_val > I1_LUM_THRESHOLD) {
-                            set_bit(dest_buf_i1, src_x);
+                            set_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                         else {
-                            clear_bit(dest_buf_i1, src_x);
+                            clear_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                     }
-                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride / 8);
+                    dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride);
                     src_buf_l8 = drawbuf_next_row(src_buf_l8, src_stride);
                     mask_buf += mask_stride;
                 }
@@ -583,10 +580,10 @@ static void LV_ATTRIBUTE_FAST_MEM l8_image_blend(_lv_draw_sw_blend_image_dsc_t *
                 src_argb.blue = src_buf_l8[src_x];
                 if(mask_buf == NULL) src_argb.alpha = opa;
                 else src_argb.alpha = LV_OPA_MIX2(mask_buf[src_x], opa);
-                blend_non_normal_pixel(dest_buf_i1, src_x, src_argb, dsc->blend_mode);
+                blend_non_normal_pixel(dest_buf_i1, src_x + bit_ofs, src_argb, dsc->blend_mode);
             }
             if(mask_buf) mask_buf += mask_stride;
-            dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride / 8);
+            dest_buf_i1 = drawbuf_next_row(dest_buf_i1, dest_stride);
             src_buf_l8 = drawbuf_next_row(src_buf_l8, src_stride);
         }
     }
@@ -617,8 +614,9 @@ static void LV_ATTRIBUTE_FAST_MEM al88_image_blend(_lv_draw_sw_blend_image_dsc_t
             if(LV_RESULT_INVALID == LV_DRAW_SW_AL88_BLEND_NORMAL_TO_I1(dsc)) {
                 for(y = 0; y < h; y++) {
                     for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
-                        uint8_t pixel = src_buf_al88[src_x].lumi;
-                        if(pixel > I1_LUM_THRESHOLD) {
+                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
+                        lv_color_8_8_mix(src_buf_al88[src_x].lumi, &dest_val, src_buf_al88[src_x].alpha);
+                        if(dest_val > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
                         else {
@@ -634,8 +632,8 @@ static void LV_ATTRIBUTE_FAST_MEM al88_image_blend(_lv_draw_sw_blend_image_dsc_t
             if(LV_RESULT_INVALID == LV_DRAW_SW_AL88_BLEND_NORMAL_TO_I1_WITH_OPA(dsc)) {
                 for(y = 0; y < h; y++) {
                     for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
-                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) ? 255 : 0;
-                        lv_color_8_8_mix(src_buf_al88[src_x].lumi, &dest_val, opa);
+                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
+                        lv_color_8_8_mix(src_buf_al88[src_x].lumi, &dest_val, LV_OPA_MIX2(src_buf_al88[src_x].alpha, opa));
                         if(dest_val > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
@@ -652,9 +650,9 @@ static void LV_ATTRIBUTE_FAST_MEM al88_image_blend(_lv_draw_sw_blend_image_dsc_t
             if(LV_RESULT_INVALID == LV_DRAW_SW_AL88_BLEND_NORMAL_TO_I1_WITH_MASK(dsc)) {
                 for(y = 0; y < h; y++) {
                     for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
-                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) ? 255 : 0;
+                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         uint8_t mask_val = mask_buf[src_x];
-                        lv_color_8_8_mix(src_buf_al88[src_x].lumi, &dest_val, mask_val);
+                        lv_color_8_8_mix(src_buf_al88[src_x].lumi, &dest_val,  LV_OPA_MIX2(src_buf_al88[src_x].alpha, mask_val));
                         if(dest_val > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
@@ -672,9 +670,9 @@ static void LV_ATTRIBUTE_FAST_MEM al88_image_blend(_lv_draw_sw_blend_image_dsc_t
             if(LV_RESULT_INVALID == LV_DRAW_SW_AL88_BLEND_NORMAL_TO_I1_MIX_MASK_OPA(dsc)) {
                 for(y = 0; y < h; y++) {
                     for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
-                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) ? 255 : 0;
+                        uint8_t dest_val = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         uint8_t mask_val = mask_buf[src_x];
-                        lv_color_8_8_mix(src_buf_al88[src_x].lumi, &dest_val, LV_OPA_MIX2(mask_val, opa));
+                        lv_color_8_8_mix(src_buf_al88[src_x].lumi, &dest_val, LV_OPA_MIX3(src_buf_al88[src_x].alpha, mask_val, opa));
                         if(dest_val > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, dest_x + bit_ofs);
                         }
@@ -693,13 +691,11 @@ static void LV_ATTRIBUTE_FAST_MEM al88_image_blend(_lv_draw_sw_blend_image_dsc_t
         lv_color32_t src_argb;
         for(y = 0; y < h; y++) {
             for(dest_x = 0, src_x = 0; src_x < w; dest_x++, src_x++) {
-                // Convert AL88 pixel to ARGB
                 src_argb.red = src_buf_al88[src_x].lumi;
                 src_argb.green = src_buf_al88[src_x].lumi;
                 src_argb.blue = src_buf_al88[src_x].lumi;
-                // If no mask, use specified opacity, otherwise mix with mask opacity
-                src_argb.alpha = mask_buf == NULL ? opa : LV_OPA_MIX2(mask_buf[src_x], opa);
-                // Blend pixel using specified blend mode
+                if(mask_buf == NULL) src_argb.alpha = LV_OPA_MIX2(src_buf_al88[src_x].alpha, opa);
+                else src_argb.alpha = LV_OPA_MIX3(src_buf_al88[src_x].alpha, mask_buf[src_x], opa);
                 blend_non_normal_pixel(dest_buf_i1, dest_x + bit_ofs, src_argb, dsc->blend_mode);
             }
             if(mask_buf) mask_buf += mask_stride;
@@ -735,7 +731,7 @@ static void LV_ATTRIBUTE_FAST_MEM argb8888_image_blend(_lv_draw_sw_blend_image_d
                 for(y = 0; y < h; y++) {
                     for(x = 0; x < w; x++) {
                         uint8_t src = lv_color32_luminance(src_buf_c32[x + src_bit_ofs]);
-                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) ? 255 : 0;
+                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, src_buf_c32[x + src_bit_ofs].alpha);
                         if(dest > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, x + bit_ofs);
@@ -754,7 +750,7 @@ static void LV_ATTRIBUTE_FAST_MEM argb8888_image_blend(_lv_draw_sw_blend_image_d
                 for(y = 0; y < h; y++) {
                     for(x = 0; x < w; x++) {
                         uint8_t src = lv_color32_luminance(src_buf_c32[x + src_bit_ofs]);
-                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) ? 255 : 0;
+                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, LV_OPA_MIX2(opa, src_buf_c32[x + src_bit_ofs].alpha));
                         if(dest > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, x + bit_ofs);
@@ -773,7 +769,7 @@ static void LV_ATTRIBUTE_FAST_MEM argb8888_image_blend(_lv_draw_sw_blend_image_d
                 for(y = 0; y < h; y++) {
                     for(x = 0; x < w; x++) {
                         uint8_t src = lv_color32_luminance(src_buf_c32[x + src_bit_ofs]);
-                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) ? 255 : 0;
+                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, LV_OPA_MIX2(mask_buf[x + src_bit_ofs], src_buf_c32[x].alpha));
                         if(dest > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, x + bit_ofs);
@@ -793,7 +789,7 @@ static void LV_ATTRIBUTE_FAST_MEM argb8888_image_blend(_lv_draw_sw_blend_image_d
                 for(y = 0; y < h; y++) {
                     for(x = 0; x < w; x++) {
                         uint8_t src = lv_color32_luminance(src_buf_c32[x + src_bit_ofs]);
-                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) ? 255 : 0;
+                        uint8_t dest = get_bit(dest_buf_i1, x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, LV_OPA_MIX3(opa, mask_buf[x], src_buf_c32[x + src_bit_ofs].alpha));
                         if(dest > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, x + bit_ofs);
@@ -874,7 +870,7 @@ static void LV_ATTRIBUTE_FAST_MEM rgb888_image_blend(_lv_draw_sw_blend_image_dsc
                 for(y = 0; y < h; y++) {
                     for(dest_x = 0, src_x = 0; dest_x < w; dest_x++, src_x += src_px_size) {
                         uint8_t src = lv_color24_luminance(&src_buf_u8[src_x]);
-                        uint8_t dest = get_bit(dest_buf_i1, dest_x + bit_ofs) ? 255 : 0;
+                        uint8_t dest = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, opa);
                         if(dest > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, dest_x + bit_ofs);
@@ -894,7 +890,7 @@ static void LV_ATTRIBUTE_FAST_MEM rgb888_image_blend(_lv_draw_sw_blend_image_dsc
                 for(y = 0; y < h; y++) {
                     for(mask_x = 0, dest_x = 0, src_x = 0; dest_x < w; mask_x++, dest_x++, src_x += src_px_size) {
                         uint8_t src = lv_color24_luminance(&src_buf_u8[src_x]);
-                        uint8_t dest = get_bit(dest_buf_i1, dest_x + bit_ofs) ? 255 : 0;
+                        uint8_t dest = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, mask_buf[mask_x]);
                         if(dest > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, dest_x + bit_ofs);
@@ -915,7 +911,7 @@ static void LV_ATTRIBUTE_FAST_MEM rgb888_image_blend(_lv_draw_sw_blend_image_dsc
                 for(y = 0; y < h; y++) {
                     for(mask_x = 0, dest_x = 0, src_x = 0; dest_x < w; mask_x++, dest_x++, src_x += src_px_size) {
                         uint8_t src = lv_color24_luminance(&src_buf_u8[src_x]);
-                        uint8_t dest = get_bit(dest_buf_i1, dest_x + bit_ofs) ? 255 : 0;
+                        uint8_t dest = get_bit(dest_buf_i1, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, LV_OPA_MIX2(mask_buf[mask_x], opa));
                         if(dest > I1_LUM_THRESHOLD) {
                             set_bit(dest_buf_i1, dest_x + bit_ofs);
@@ -938,7 +934,7 @@ static void LV_ATTRIBUTE_FAST_MEM rgb888_image_blend(_lv_draw_sw_blend_image_dsc
                     src_argb.green = src_buf_u8[src_x + 1];
                     src_argb.blue = src_buf_u8[src_x + 0];
                     if(mask_buf == NULL) src_argb.alpha = opa;
-                    else src_argb.alpha = LV_OPA_MIX2(mask_buf[dest_x + bit_ofs], opa);
+                    else src_argb.alpha = LV_OPA_MIX2(mask_buf[dest_x], opa);
 
                     blend_non_normal_pixel(dest_buf_i1, dest_x + bit_ofs, src_argb, dsc->blend_mode);
                 }
@@ -963,6 +959,7 @@ static void LV_ATTRIBUTE_FAST_MEM rgb565_image_blend(_lv_draw_sw_blend_image_dsc
     int32_t src_stride = dsc->src_stride;
     const lv_opa_t * mask_buf = dsc->mask_buf;
     int32_t mask_stride = dsc->mask_stride;
+    int32_t bit_ofs = dsc->relative_area.x1 % 8;
 
     int32_t src_x;
     int32_t dest_x;
@@ -975,13 +972,13 @@ static void LV_ATTRIBUTE_FAST_MEM rgb565_image_blend(_lv_draw_sw_blend_image_dsc
                     for(src_x = 0, dest_x = 0; src_x < w; dest_x++, src_x++) {
                         uint8_t src = lv_color16_luminance(src_buf_c16[src_x]);
                         if(src > I1_LUM_THRESHOLD) {
-                            set_bit(dest_buf_u8, dest_x);
+                            set_bit(dest_buf_u8, dest_x + bit_ofs);
                         }
                         else {
-                            clear_bit(dest_buf_u8, dest_x);
+                            clear_bit(dest_buf_u8, dest_x + bit_ofs);
                         }
                     }
-                    dest_buf_u8 += dest_stride;
+                    dest_buf_u8 = drawbuf_next_row(dest_buf_u8, dest_stride);
                     src_buf_c16 = drawbuf_next_row(src_buf_c16, src_stride);
                 }
             }
@@ -991,16 +988,16 @@ static void LV_ATTRIBUTE_FAST_MEM rgb565_image_blend(_lv_draw_sw_blend_image_dsc
                 for(y = 0; y < h; y++) {
                     for(src_x = 0, dest_x = 0; src_x < w; dest_x++, src_x++) {
                         uint8_t src = lv_color16_luminance(src_buf_c16[src_x]);
-                        uint8_t dest = get_bit(dest_buf_u8, dest_x);
+                        uint8_t dest = get_bit(dest_buf_u8, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, opa);
                         if(dest > I1_LUM_THRESHOLD) {
-                            set_bit(dest_buf_u8, dest_x);
+                            set_bit(dest_buf_u8, dest_x  + bit_ofs);
                         }
                         else {
-                            clear_bit(dest_buf_u8, dest_x);
+                            clear_bit(dest_buf_u8, dest_x  + bit_ofs);
                         }
                     }
-                    dest_buf_u8 += dest_stride;
+                    dest_buf_u8 = drawbuf_next_row(dest_buf_u8, dest_stride);
                     src_buf_c16 = drawbuf_next_row(src_buf_c16, src_stride);
                 }
             }
@@ -1011,16 +1008,16 @@ static void LV_ATTRIBUTE_FAST_MEM rgb565_image_blend(_lv_draw_sw_blend_image_dsc
                 for(y = 0; y < h; y++) {
                     for(mask_x = 0, dest_x = 0, src_x = 0; dest_x < w; mask_x++, dest_x++, src_x++) {
                         uint8_t src = lv_color16_luminance(src_buf_c16[src_x]);
-                        uint8_t dest = get_bit(dest_buf_u8, dest_x);
+                        uint8_t dest = get_bit(dest_buf_u8, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, mask_buf[mask_x]);
                         if(dest > I1_LUM_THRESHOLD) {
-                            set_bit(dest_buf_u8, dest_x);
+                            set_bit(dest_buf_u8, dest_x + bit_ofs);
                         }
                         else {
-                            clear_bit(dest_buf_u8, dest_x);
+                            clear_bit(dest_buf_u8, dest_x + bit_ofs);
                         }
                     }
-                    dest_buf_u8 += dest_stride;
+                    dest_buf_u8 = drawbuf_next_row(dest_buf_u8, dest_stride);
                     src_buf_c16 = drawbuf_next_row(src_buf_c16, src_stride);
                     mask_buf += mask_stride;
                 }
@@ -1032,16 +1029,16 @@ static void LV_ATTRIBUTE_FAST_MEM rgb565_image_blend(_lv_draw_sw_blend_image_dsc
                 for(y = 0; y < h; y++) {
                     for(mask_x = 0, dest_x = 0, src_x = 0; dest_x < w; mask_x++, dest_x++, src_x++) {
                         uint8_t src = lv_color16_luminance(src_buf_c16[src_x]);
-                        uint8_t dest = get_bit(dest_buf_u8, dest_x);
+                        uint8_t dest = get_bit(dest_buf_u8, dest_x + bit_ofs) * 255;
                         lv_color_8_8_mix(src, &dest, LV_OPA_MIX2(mask_buf[mask_x], opa));
                         if(dest > I1_LUM_THRESHOLD) {
-                            set_bit(dest_buf_u8, dest_x);
+                            set_bit(dest_buf_u8, dest_x + bit_ofs);
                         }
                         else {
-                            clear_bit(dest_buf_u8, dest_x);
+                            clear_bit(dest_buf_u8, dest_x + bit_ofs);
                         }
                     }
-                    dest_buf_u8 += dest_stride;
+                    dest_buf_u8 = drawbuf_next_row(dest_buf_u8, dest_stride);
                     src_buf_c16 = drawbuf_next_row(src_buf_c16, src_stride);
                     mask_buf += mask_stride;
                 }
@@ -1058,10 +1055,10 @@ static void LV_ATTRIBUTE_FAST_MEM rgb565_image_blend(_lv_draw_sw_blend_image_dsc
                 if(mask_buf == NULL) src_argb.alpha = opa;
                 else src_argb.alpha = LV_OPA_MIX2(mask_buf[src_x], opa);
 
-                blend_non_normal_pixel(dest_buf_u8, dest_x, src_argb, dsc->blend_mode);
+                blend_non_normal_pixel(dest_buf_u8, dest_x + bit_ofs, src_argb, dsc->blend_mode);
             }
             if(mask_buf) mask_buf += mask_stride;
-            dest_buf_u8 += dest_stride;
+            dest_buf_u8 = drawbuf_next_row(dest_buf_u8, dest_stride);
             src_buf_c16 = drawbuf_next_row(src_buf_c16, src_stride);
         }
     }
@@ -1073,7 +1070,7 @@ static inline void LV_ATTRIBUTE_FAST_MEM blend_non_normal_pixel(uint8_t * dest_b
 {
     uint8_t res;
     int32_t src_lumi = lv_color32_luminance(src);
-    int32_t dest_lumi = get_bit(dest_buf, dest_x) ? 0xFF : 0x00;
+    uint8_t dest_lumi = get_bit(dest_buf, dest_x) * 255;
     switch(mode) {
         case LV_BLEND_MODE_ADDITIVE:
             res = LV_MIN(dest_lumi + src_lumi, 255);
@@ -1088,7 +1085,9 @@ static inline void LV_ATTRIBUTE_FAST_MEM blend_non_normal_pixel(uint8_t * dest_b
             LV_LOG_WARN("Not supported blend mode: %d", mode);
             return;
     }
-    if(res > I1_LUM_THRESHOLD) {
+
+    lv_color_8_8_mix(res, &dest_lumi, src.alpha);
+    if(dest_lumi > I1_LUM_THRESHOLD) {
         set_bit(dest_buf, dest_x);
     }
     else {
@@ -1107,27 +1106,6 @@ static inline void LV_ATTRIBUTE_FAST_MEM lv_color_8_8_mix(const uint8_t src, uin
     else {
         lv_opa_t mix_inv = 255 - mix;
         *dest = (uint32_t)((uint32_t)src * mix + dest[0] * mix_inv) >> 8;
-    }
-}
-
-static inline void LV_ATTRIBUTE_FAST_MEM lv_color_1bit_blend(const uint8_t src, uint8_t * dest, int32_t x,
-                                                             uint8_t mix)
-{
-    // Extract the source bit
-    uint8_t src_bit = (src >> (7 - (x % 8))) & 0x01;
-
-    // Extract the destination bit
-    uint8_t dest_bit = (dest[x / 8] >> (7 - (x % 8))) & 0x01;
-
-    // Blend the source and destination bits based on the opacity
-    uint8_t blended_bit = (mix * src_bit + (255 - mix) * dest_bit);
-
-    // Set the result in the destination buffer
-    if(blended_bit > I1_LUM_THRESHOLD) {
-        set_bit(dest, x);
-    }
-    else {
-        clear_bit(dest, x);
     }
 }
 
