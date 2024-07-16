@@ -438,6 +438,20 @@
 	    #endif
 	#endif
 
+    #if LV_DRAW_SW_SUPPORT_I1 == 1
+        /* Invert the pixel set logic for I1 color format.
+         * By default having a luminance > 127 means the bit
+         * is set to 1. This setting can be activated to invert this logic.
+         * The actual meaning of a pixel being set, depends on your display. */
+        #ifndef LV_COLOR_FORMAT_I1_INVERT_LUMINANCE
+            #ifdef CONFIG_LV_COLOR_FORMAT_I1_INVERT_LUMINANCE
+                #define LV_COLOR_FORMAT_I1_INVERT_LUMINANCE CONFIG_LV_COLOR_FORMAT_I1_INVERT_LUMINANCE
+            #else
+                #define LV_COLOR_FORMAT_I1_INVERT_LUMINANCE 0
+            #endif
+        #endif
+    #endif
+
 	/* Set the number of draw unit.
      * > 1 requires an operating system enabled in `LV_USE_OS`
      * > 1 means multiple threads will render the screen in parallel */

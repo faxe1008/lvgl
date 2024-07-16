@@ -243,6 +243,10 @@ menu "LVGL configuration"
 			bool "Enable support for I1 color format"
 			default y
 			depends on LV_USE_DRAW_SW
+
+		config LV_COLOR_FORMAT_I1_INVERT_LUMINANCE
+			bool "Invert luminance to pixel conversion"
+			depends on LV_DRAW_SW_SUPPORT_I1
 				
 		config LV_DRAW_SW_DRAW_UNIT_CNT
 			int "Number of draw units"
