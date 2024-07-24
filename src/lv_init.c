@@ -44,6 +44,9 @@
 #if LV_USE_WINDOWS
     #include "drivers/windows/lv_windows_context.h"
 #endif
+#if LV_USE_DRAW_STM32_DMA2D
+    #include "draw/stm32_dma2d/lv_draw_stm32_dma2d.h"
+#endif
 
 /*********************
  *      DEFINES
@@ -198,6 +201,10 @@ void lv_init(void)
 
 #if LV_USE_WINDOWS
     lv_windows_platform_init();
+#endif
+
+#if LV_USE_DRAW_STM32_DMA2D
+    lv_draw_stm32_dma2d_init();
 #endif
 
     _lv_obj_style_init();
@@ -385,6 +392,10 @@ void lv_deinit(void)
 
 #if LV_USE_DRAW_SW
     lv_draw_sw_deinit();
+#endif
+
+#if LV_USE_DRAW_STM32_DMA2D
+    lv_draw_stm32_dma2d_deinit();
 #endif
 
     lv_draw_deinit();

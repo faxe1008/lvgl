@@ -632,6 +632,25 @@
     #endif
 #endif
 
+/* Use STM32 DMA2D */
+#ifndef LV_USE_DRAW_STM32_DMA2D
+    #ifdef CONFIG_LV_USE_DRAW_STM32_DMA2D
+        #define LV_USE_DRAW_STM32_DMA2D CONFIG_LV_USE_DRAW_STM32_DMA2D
+    #else
+        #define LV_USE_DRAW_STM32_DMA2D 0
+    #endif
+#endif
+
+#if LV_USE_DRAW_STM32_DMA2D == 1
+    #ifndef LV_GPU_DMA2D_CMSIS_INCLUDE
+        #ifdef CONFIG_LV_GPU_DMA2D_CMSIS_INCLUDE
+            #define LV_GPU_DMA2D_CMSIS_INCLUDE CONFIG_LV_GPU_DMA2D_CMSIS_INCLUDE
+        #else
+            #define LV_GPU_DMA2D_CMSIS_INCLUDE
+        #endif
+    #endif
+#endif
+
 /* Use VG-Lite GPU. */
 #ifndef LV_USE_DRAW_VG_LITE
     #ifdef CONFIG_LV_USE_DRAW_VG_LITE

@@ -213,6 +213,13 @@
 /* Draw using cached SDL textures*/
 #define LV_USE_DRAW_SDL 0
 
+/* Use STM32 DMA2D */
+#define LV_USE_DRAW_STM32_DMA2D 0
+
+#if LV_USE_DRAW_STM32_DMA2D == 1
+    #define LV_GPU_DMA2D_CMSIS_INCLUDE
+#endif
+
 /* Use VG-Lite GPU. */
 #define LV_USE_DRAW_VG_LITE 0
 

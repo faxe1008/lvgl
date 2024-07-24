@@ -420,6 +420,19 @@ menu "LVGL configuration"
 			int "VG-Lite stroke maximum cache number."
 			default 32
 			depends on LV_USE_DRAW_VG_LITE
+		config LV_USE_DRAW_STM32_DMA2D
+			bool "STM32 DMA2D drawing unit"
+			default n
+			help
+				Enables the STM32_DMA2D drawing unit
+
+		config LV_DMA2D_CMSIS_INCLUDE
+			string "include path of CMSIS header of target processor"
+			depends on LV_USE_DRAW_STM32_DMA2D
+			default ""
+			help
+				Must be defined to include path of CMSIS header of target processor
+				e.g. "stm32f769xx.h" or "stm32f429xx.h"
 
 		config LV_USE_VECTOR_GRAPHIC
 			bool "Use Vector Graphic APIs"
