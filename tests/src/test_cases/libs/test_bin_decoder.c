@@ -124,7 +124,7 @@ void test_bin_decoder_bin_file(void)
 void test_bin_decoder_flush_cache(void)
 {
 #if LV_BIN_DECODER_RAM_LOAD == 1
-    LV_IMAGE_DECLARE(test_I1_NONE_align64);
+    LV_IMAGE_DECLARE(test_L1_HTILED_MSB_NONE_align64);
     LV_IMAGE_DECLARE(test_I2_NONE_align64);
     LV_IMAGE_DECLARE(test_I4_NONE_align64);
     LV_IMAGE_DECLARE(test_I8_NONE_align64);
@@ -139,7 +139,7 @@ void test_bin_decoder_flush_cache(void)
     LV_IMAGE_DECLARE(test_ARGB8888_NONE_align64);
 
     const lv_image_dsc_t * img_dscs[] = {
-        &test_I1_NONE_align64,
+        &test_L1_HTILED_MSB_NONE_align64,
         &test_I2_NONE_align64,
         &test_I4_NONE_align64,
         &test_I8_NONE_align64,
@@ -211,7 +211,7 @@ void test_bin_decoder_open_stride_zero_handling(void)
     /* Test open image with stride zero for indexed image */
     image_dsc = get_image_dsc();
     image_dsc->header.stride = 0;
-    image_dsc->header.cf = LV_COLOR_FORMAT_I1;
+    image_dsc->header.cf = LV_COLOR_FORMAT_L1_HTILED_MSB;
     decoder_dsc = get_image_decoder_dsc();
     decoder_dsc->src = image_dsc;
     decoder_dsc->src_type = LV_IMAGE_SRC_VARIABLE;

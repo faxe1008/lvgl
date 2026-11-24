@@ -86,7 +86,7 @@ void test_refr_transparent_screen_clears_only_the_invalid_area(void)
 void test_refr_indexed_format_is_not_tiled(void)
 {
     /*Indexed formats can not be rendered in tiles, the palette is shared*/
-    refr_disp_create(64, 32, LV_COLOR_FORMAT_I1, LV_DISPLAY_RENDER_MODE_DIRECT, 1, 32);
+    refr_disp_create(64, 32, LV_COLOR_FORMAT_I2, LV_DISPLAY_RENDER_MODE_DIRECT, 1, 32);
     lv_display_set_tile_cnt(refr_ctx.disp, 4);
     lv_obj_invalidate(refr_screen());
     refr_frame();
@@ -101,10 +101,10 @@ void test_refr_indexed_format_partial_mode(void)
     /*The palette is stored in the buffer, its space must not be used for rows*/
     const int32_t w = 848;
     const int32_t h = 64;
-    refr_disp_create(w, h, LV_COLOR_FORMAT_I1, LV_DISPLAY_RENDER_MODE_PARTIAL, 1, 8);
+    refr_disp_create(w, h, LV_COLOR_FORMAT_I2, LV_DISPLAY_RENDER_MODE_PARTIAL, 1, 8);
 
-    uint32_t stride = lv_draw_buf_width_to_stride((uint32_t)w, LV_COLOR_FORMAT_I1);
-    uint32_t overhead = LV_COLOR_INDEXED_PALETTE_SIZE(LV_COLOR_FORMAT_I1) * sizeof(lv_color32_t);
+    uint32_t stride = lv_draw_buf_width_to_stride((uint32_t)w, LV_COLOR_FORMAT_I2);
+    uint32_t overhead = LV_COLOR_INDEXED_PALETTE_SIZE(LV_COLOR_FORMAT_I2) * sizeof(lv_color32_t);
     uint32_t data_size = refr_ctx.disp->buf_act->data_size;
     uint32_t max_row = refr_max_row_of(w, h);
 

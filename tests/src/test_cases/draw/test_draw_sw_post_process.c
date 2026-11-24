@@ -301,17 +301,17 @@ void test_invert(void)
 
     /*Aligned start and aligned end*/
     uint8_t buf1[10] =         {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
-    lv_draw_i1_invert(buf1, 8);
+    lv_draw_l1_invert(buf1, 8);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_buf, buf1, 8);
 
     /*Unaligned start and unaligned end*/
     uint8_t buf2[10] =         {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
-    lv_draw_i1_invert(&buf2[3], 6);
+    lv_draw_l1_invert(&buf2[3], 6);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(&expected_buf[3], &buf2[3], 6);
 
     /*Small buffer*/
     uint8_t buf3[10] =         {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
-    lv_draw_i1_invert(&buf3[3], 2);
+    lv_draw_l1_invert(&buf3[3], 2);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(&expected_buf[3], &buf3[3], 2);
 }
 
@@ -323,10 +323,10 @@ void test_vtile_small(void)
     uint8_t expected_buf_msb[8] = {0x3C, 0x42, 0x91, 0x81, 0x81, 0x91, 0x42, 0x3C};
     uint8_t expected_buf_lsb[8] = {0x3C, 0x42, 0x89, 0x81, 0x81, 0x89, 0x42, 0x3C};
 
-    lv_draw_i1_convert_to_vtiled(src_buf, 8, 8, 8, dst_buf, 8, false);
+    lv_draw_l1_convert_to_vtiled(src_buf, 8, 8, 8, dst_buf, 8, false);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_buf_msb, dst_buf, 8);
 
-    lv_draw_i1_convert_to_vtiled(src_buf, 8, 8, 8, dst_buf, 8, true);
+    lv_draw_l1_convert_to_vtiled(src_buf, 8, 8, 8, dst_buf, 8, true);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_buf_lsb, dst_buf, 8);
 }
 
@@ -437,10 +437,10 @@ void test_vtile_rectangular(void)
         0x00, 0x00,
     };
 
-    lv_draw_i1_convert_to_vtiled(src_buf, 80, 40, 16,  dst_buf, 80, false);
+    lv_draw_l1_convert_to_vtiled(src_buf, 80, 40, 16,  dst_buf, 80, false);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_buf_msb, dst_buf, 8);
 
-    lv_draw_i1_convert_to_vtiled(src_buf, 80, 40, 16, dst_buf, 80, true);
+    lv_draw_l1_convert_to_vtiled(src_buf, 80, 40, 16, dst_buf, 80, true);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_buf_lsb, dst_buf, 8);
 }
 

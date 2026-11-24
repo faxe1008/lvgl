@@ -165,7 +165,7 @@
 #if !defined(LV_COLOR_FORMAT_DEFAULT) && defined(LV_COLOR_DEPTH)
     #warning LV_COLOR_DEPTH is deprecated and will be removed in a future release. Define LV_COLOR_FORMAT_DEFAULT instead
     #if LV_COLOR_DEPTH == 1
-        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_I1
+        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_L1_HTILED_MSB
     #elif LV_COLOR_DEPTH == 8
         #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_L8
     #elif LV_COLOR_DEPTH == 16
@@ -587,23 +587,23 @@
     #endif
 #endif
 
-#ifndef LV_DRAW_SW_SUPPORT_I1
+#ifndef LV_DRAW_SW_SUPPORT_L1
     #ifdef LV_KCONFIG_PRESENT
-        #ifdef CONFIG_LV_DRAW_SW_SUPPORT_I1
-            #define LV_DRAW_SW_SUPPORT_I1 CONFIG_LV_DRAW_SW_SUPPORT_I1
+        #ifdef CONFIG_LV_DRAW_SW_SUPPORT_L1
+            #define LV_DRAW_SW_SUPPORT_L1 CONFIG_LV_DRAW_SW_SUPPORT_L1
         #else
-            #define LV_DRAW_SW_SUPPORT_I1 0
+            #define LV_DRAW_SW_SUPPORT_L1 0
         #endif
     #else
-          #define LV_DRAW_SW_SUPPORT_I1 LV_USE_DRAW_SW
+          #define LV_DRAW_SW_SUPPORT_L1 LV_USE_DRAW_SW
     #endif
 #endif
 
-#ifndef LV_DRAW_SW_I1_LUM_THRESHOLD
-    #ifdef CONFIG_LV_DRAW_SW_I1_LUM_THRESHOLD
-        #define LV_DRAW_SW_I1_LUM_THRESHOLD CONFIG_LV_DRAW_SW_I1_LUM_THRESHOLD
+#ifndef LV_DRAW_SW_L1_LUM_THRESHOLD
+    #ifdef CONFIG_LV_DRAW_SW_L1_LUM_THRESHOLD
+        #define LV_DRAW_SW_L1_LUM_THRESHOLD CONFIG_LV_DRAW_SW_L1_LUM_THRESHOLD
     #else
-        #define LV_DRAW_SW_I1_LUM_THRESHOLD 127
+        #define LV_DRAW_SW_L1_LUM_THRESHOLD 127
     #endif
 #endif
 
@@ -4749,7 +4749,7 @@
 /* Values fixed by another option's selected token (see LV_CONF_PASTE). */
 
 /** LV_COLOR_DEPTH - derived from LV_COLOR_FORMAT_DEFAULT. */
-#define LV_COLOR_DEPTH_OF_LV_COLOR_FORMAT_I1                       1
+#define LV_COLOR_DEPTH_OF_LV_COLOR_FORMAT_L1                       1
 #define LV_COLOR_DEPTH_OF_LV_COLOR_FORMAT_L8                       8
 #define LV_COLOR_DEPTH_OF_LV_COLOR_FORMAT_RGB565                   16
 #define LV_COLOR_DEPTH_OF_LV_COLOR_FORMAT_RGB565_SWAPPED           16

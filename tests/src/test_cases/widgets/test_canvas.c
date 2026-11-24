@@ -93,15 +93,15 @@ void test_canvas_fill_and_set_px(void)
     lv_obj_t * canvas = lv_canvas_create(lv_screen_active());
     lv_obj_center(canvas);
 
-    LV_DRAW_BUF_DEFINE_STATIC(buf_i1, 10, 10, LV_COLOR_FORMAT_I1);
-    LV_DRAW_BUF_INIT_STATIC(buf_i1);
-    canvas_draw_buf_reshape(&buf_i1);
-    lv_canvas_set_draw_buf(canvas, &buf_i1);
-    lv_canvas_set_palette(canvas, 0, lv_color32_make(0x00, 0xff, 0x00, 0xff));
-    lv_canvas_set_palette(canvas, 1, lv_color32_make(0x00, 0x00, 0xff, 0xff));
-    lv_canvas_fill_bg(canvas, lv_color_hex(0), LV_OPA_COVER);
-    lv_canvas_set_px(canvas, 1, 7, lv_color_hex(1), 0);
-    TEST_ASSERT_EQUAL_SCREENSHOT("widgets/canvas_1.png");
+    LV_DRAW_BUF_DEFINE_STATIC(buf_l1, 10, 10, LV_COLOR_FORMAT_L1_HTILED_MSB);
+    LV_DRAW_BUF_INIT_STATIC(buf_l1);
+    canvas_draw_buf_reshape(&buf_l1);
+    lv_canvas_set_draw_buf(canvas, &buf_l1);
+    /*L1 has no palette: the bits encode luminance (1 is white, 0 is black) and the
+     *colors are quantized to those levels*/
+    lv_canvas_fill_bg(canvas, lv_color_white(), LV_OPA_COVER);
+    lv_canvas_set_px(canvas, 1, 7, lv_color_black(), 0);
+    TEST_ASSERT_EQUAL_SCREENSHOT("widgets/canvas_l1.png");
 
     LV_DRAW_BUF_DEFINE_STATIC(buf_i2, 10, 10, LV_COLOR_FORMAT_I2);
     LV_DRAW_BUF_INIT_STATIC(buf_i2);
@@ -839,15 +839,13 @@ static bool image_cache_has_src(const void * src)
 void test_canvas_delete_drops_the_buffer_from_the_image_cache(void)
 {
 #if LV_BIN_DECODER_RAM_LOAD
-    /*#10824: an I1 buffer is decoded into the image cache, keyed by the canvas' static_buf.
+    /*#10824: an L1 buffer is decoded into the image cache, keyed by the canvas' static_buf.
      *Deleting the canvas must drop that entry, or a new canvas at the same address reuses it.*/
-    static LV_ATTRIBUTE_MEM_ALIGN uint8_t buf[LV_DRAW_BUF_SIZE(32, 32, LV_COLOR_FORMAT_I1)];
+    static LV_ATTRIBUTE_MEM_ALIGN uint8_t buf[LV_DRAW_BUF_SIZE(32, 32, LV_COLOR_FORMAT_L1_HTILED_MSB)];
     lv_memzero(buf, sizeof(buf));
 
     lv_obj_t * canvas = lv_canvas_create(g_screen_active);
-    lv_canvas_set_buffer(canvas, buf, 32, 32, LV_COLOR_FORMAT_I1);
-    lv_canvas_set_palette(canvas, 0, lv_color32_make(0, 0, 0, 0xff));
-    lv_canvas_set_palette(canvas, 1, lv_color32_make(0xff, 0xff, 0xff, 0xff));
+    lv_canvas_set_buffer(canvas, buf, 32, 32, LV_COLOR_FORMAT_L1_HTILED_MSB);
     lv_refr_now(NULL);
 
     const lv_draw_buf_t * key = lv_canvas_get_draw_buf(canvas);

@@ -28,7 +28,7 @@
         COLOR SETTINGS
         *====================*/
 
-        /** Color depth: 1 (I1), 8 (L8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888) */
+        /** Color depth: 1 (L1), 8 (L8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888) */
         #define LV_COLOR_DEPTH 32
 
         /*=========================
@@ -176,11 +176,11 @@
             #define LV_DRAW_SW_SUPPORT_L8           1
             #define LV_DRAW_SW_SUPPORT_AL88         1
             #define LV_DRAW_SW_SUPPORT_A8           1
-            #define LV_DRAW_SW_SUPPORT_I1           1
+            #define LV_DRAW_SW_SUPPORT_L1           1
 
             /* The threshold of the luminance to consider a pixel as
             * active in indexed color format */
-            #define LV_DRAW_SW_I1_LUM_THRESHOLD 127
+            #define LV_DRAW_SW_L1_LUM_THRESHOLD 127
 
             /** Set number of draw units.
             *  - > 1 requires operating system to be enabled in `LV_USE_OS`.

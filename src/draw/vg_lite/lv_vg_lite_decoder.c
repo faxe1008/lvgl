@@ -116,7 +116,7 @@ static void image_decode_to_index8_line(uint8_t * dest, const uint8_t * src, int
 
     int8_t shift = 0;
     switch(color_format) {
-        case LV_COLOR_FORMAT_I1:
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
             px_size = 1;
             shift = 7;
             break;
@@ -157,7 +157,7 @@ static lv_color_format_t get_converted_cf(lv_color_format_t cf)
          * VG_LITE_INDEX1, 2, and 4 require endian flipping + bit flipping,
          * so for simplicity, convert them to I8.
          */
-        case LV_COLOR_FORMAT_I1:
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
         case LV_COLOR_FORMAT_I2:
         case LV_COLOR_FORMAT_I4:
             return LV_COLOR_FORMAT_I8;
@@ -736,7 +736,7 @@ static lv_result_t decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
                 }
 
                 switch(src_buf.header.cf) {
-                    case LV_COLOR_FORMAT_I1:
+                    case LV_COLOR_FORMAT_L1_HTILED_MSB:
                     case LV_COLOR_FORMAT_I2:
                     case LV_COLOR_FORMAT_I4:
                     case LV_COLOR_FORMAT_I8:
@@ -811,7 +811,7 @@ static lv_result_t decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
                 }
 
                 switch(src_header.cf) {
-                    case LV_COLOR_FORMAT_I1:
+                    case LV_COLOR_FORMAT_L1_HTILED_MSB:
                     case LV_COLOR_FORMAT_I2:
                     case LV_COLOR_FORMAT_I4:
                     case LV_COLOR_FORMAT_I8:

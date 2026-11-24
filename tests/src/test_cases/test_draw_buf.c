@@ -19,7 +19,7 @@ void test_draw_buf_stride_adjust(void)
 {
 #if LV_BIN_DECODER_RAM_LOAD == 1
     const char * color_formats[] = {
-        "I1",
+        "L1_HTILED_MSB",
         "I2",
         "I4",
         "I8",
@@ -134,7 +134,7 @@ void test_draw_buf_size_alignment(void)
         uint32_t stride; /* 0 => let LVGL choose via lv_draw_buf_width_to_stride */
     } cases[] = {
         /* Small indexed: stride=1, h=1, palette=8 => raw=9 (not a multiple of ALIGN) */
-        { 5, 1, LV_COLOR_FORMAT_I1, 1 },
+        { 5, 1, LV_COLOR_FORMAT_L1_HTILED_MSB, 1 },
         /* A8 with odd raw size: 1*3 = 3 */
         { 1, 3, LV_COLOR_FORMAT_A8, 1 },
         /* RGB565 with an intentionally non-aligned raw size: 6*1 = 6 */
@@ -298,9 +298,8 @@ void test_draw_buf_premultiply(void)
         lv_draw_buf_destroy(draw_buf);
     }
 
-    /* Test indexed format (I1/I2/I4/I8) */
+    /* Test indexed format (I2/I4/I8) */
     lv_color_format_t color_formats[] = {
-        LV_COLOR_FORMAT_I1,
         LV_COLOR_FORMAT_I2,
         LV_COLOR_FORMAT_I4,
         LV_COLOR_FORMAT_I8,

@@ -68,8 +68,19 @@ static lv_result_t decode_alpha_only(lv_image_decoder_t * decoder, lv_image_deco
 static lv_result_t decode_indexed_line(lv_color_format_t color_format, const lv_color32_t * palette, int32_t x,
                                        int32_t w_px, const uint8_t * in, lv_color32_t * out);
 static lv_result_t decode_compressed(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
+static lv_result_t decode_l1_line(int32_t x, int32_t w_px, const uint8_t * in, lv_color32_t * out);
 
 static lv_fs_res_t fs_read_file_at(lv_fs_file_t * f, uint32_t pos, void * buff, uint32_t btr, uint32_t * br);
+
+/**
+ * Check whether the color format's packed bit data has to be expanded line by line.
+ * L1 is not an indexed format (its bit directly encodes the luminance) but is
+ * expanded through the same pipeline, without a palette.
+ */
+static inline bool needs_line_expansion(lv_color_format_t cf)
+{
+    return LV_COLOR_FORMAT_IS_INDEXED(cf) || LV_COLOR_FORMAT_IS_L1(cf);
+}
 
 static lv_result_t decompress_image(lv_image_decoder_dsc_t * dsc, const lv_image_compressed_t * compressed);
 
@@ -218,7 +229,7 @@ lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
         if(dsc->header.flags & LV_IMAGE_FLAGS_COMPRESSED) {
             res = decode_compressed(decoder, dsc);
         }
-        else if(LV_COLOR_FORMAT_IS_INDEXED(cf)) {
+        else if(needs_line_expansion(cf)) {
             if(dsc->args.use_indexed) {
                 /*Palette for indexed image and whole image of A8 image are always loaded to RAM for simplicity*/
                 res = load_indexed(decoder, dsc);
@@ -259,7 +270,7 @@ lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
         if(dsc->header.flags & LV_IMAGE_FLAGS_COMPRESSED) {
             res = decode_compressed(decoder, dsc);
         }
-        else if(LV_COLOR_FORMAT_IS_INDEXED(cf)) {
+        else if(needs_line_expansion(cf)) {
             /*Need decoder data to store converted image*/
             decoder_data_t * decoder_data = get_decoder_data(dsc);
             if(decoder_data == NULL) {
@@ -404,7 +415,7 @@ lv_result_t lv_bin_decoder_get_area(lv_image_decoder_t * decoder, lv_image_decod
     LV_UNUSED(decoder);
     lv_color_format_t cf = dsc->header.cf;
     LV_CHECK_ARG_FORMAT_MSG(
-        LV_COLOR_FORMAT_IS_INDEXED(cf)
+        needs_line_expansion(cf)
         || cf == LV_COLOR_FORMAT_ARGB8888
         || cf == LV_COLOR_FORMAT_XRGB8888
         || cf == LV_COLOR_FORMAT_RGB888
@@ -428,8 +439,8 @@ lv_result_t lv_bin_decoder_get_area(lv_image_decoder_t * decoder, lv_image_decod
 
     /*We only support read line by line for now*/
     if(decoded_area->y1 == LV_COORD_MIN) {
-        /*Indexed image is converted to ARGB888*/
-        lv_color_format_t cf_decoded = LV_COLOR_FORMAT_IS_INDEXED(cf) ? LV_COLOR_FORMAT_ARGB8888 : cf;
+        /*Indexed and L1 images are converted to ARGB888*/
+        lv_color_format_t cf_decoded = needs_line_expansion(cf) ? LV_COLOR_FORMAT_ARGB8888 : cf;
 
         decoded = lv_draw_buf_reshape(decoder_data->decoded_partial, cf_decoded, w_px, 1, LV_STRIDE_AUTO);
         if(decoded == NULL) {
@@ -456,7 +467,7 @@ lv_result_t lv_bin_decoder_get_area(lv_image_decoder_t * decoder, lv_image_decod
         return LV_RESULT_INVALID;
     }
 
-    if(LV_COLOR_FORMAT_IS_INDEXED(cf)) {
+    if(needs_line_expansion(cf)) {
         int32_t x_fraction = decoded_area->x1 % (8 / bpp);
         uint32_t len = (w_px * bpp + 7) / 8 + 1; /*10px for 1bpp may across 3bytes*/
         uint8_t * buf = NULL;
@@ -580,7 +591,7 @@ static lv_result_t decode_indexed(lv_image_decoder_t * decoder, lv_image_decoder
     lv_fs_file_t * f = decoder_data->f;
     lv_color_format_t cf = dsc->header.cf;
     uint32_t palette_len = sizeof(lv_color32_t) * LV_COLOR_INDEXED_PALETTE_SIZE(cf);
-    const lv_color32_t * palette;
+    const lv_color32_t * palette = NULL; /*NULL for palette-less formats like L1*/
     const uint8_t * indexed_data = NULL;
     lv_draw_buf_t * draw_buf_indexed = NULL;
     uint32_t stride = dsc->header.stride;
@@ -592,22 +603,24 @@ static lv_result_t decode_indexed(lv_image_decoder_t * decoder, lv_image_decoder
         indexed_data = data + palette_len;
     }
     else if(dsc->src_type == LV_IMAGE_SRC_FILE) {
-        /*read palette for indexed image*/
-        palette = lv_malloc(palette_len);
-        LV_ASSERT_MALLOC(palette);
-        if(palette == NULL) {
-            LV_LOG_ERROR("Out of memory");
-            return LV_RESULT_INVALID;
-        }
+        if(palette_len > 0) {
+            /*read palette for indexed image*/
+            palette = lv_malloc(palette_len);
+            LV_ASSERT_MALLOC(palette);
+            if(palette == NULL) {
+                LV_LOG_ERROR("Out of memory");
+                return LV_RESULT_INVALID;
+            }
 
-        res = fs_read_file_at(f, sizeof(lv_image_header_t), (uint8_t *)palette, palette_len, &rn);
-        if(res != LV_FS_RES_OK || rn != palette_len) {
-            LV_LOG_WARN("Read palette failed: %d, with len: %" LV_PRIu32 ", expected: %" LV_PRIu32, res, rn, palette_len);
-            lv_free((void *)palette);
-            return LV_RESULT_INVALID;
-        }
+            res = fs_read_file_at(f, sizeof(lv_image_header_t), (uint8_t *)palette, palette_len, &rn);
+            if(res != LV_FS_RES_OK || rn != palette_len) {
+                LV_LOG_WARN("Read palette failed: %d, with len: %" LV_PRIu32 ", expected: %" LV_PRIu32, res, rn, palette_len);
+                lv_free((void *)palette);
+                return LV_RESULT_INVALID;
+            }
 
-        decoder_data->palette = (void *)palette; /*Need to free when decoder closes*/
+            decoder_data->palette = (void *)palette; /*Need to free when decoder closes*/
+        }
 
 #if LV_BIN_DECODER_RAM_LOAD
         draw_buf_indexed = lv_draw_buf_create_ex(image_cache_draw_buf_handlers, dsc->header.w, dsc->header.h, cf,
@@ -1016,7 +1029,7 @@ static lv_result_t decode_compressed(lv_image_decoder_t * decoder, lv_image_deco
     }
 
     lv_color_format_t cf = dsc->header.cf;
-    if(LV_COLOR_FORMAT_IS_INDEXED(cf)) {
+    if(needs_line_expansion(cf)) {
         if(dsc->args.use_indexed) res = load_indexed(decoder, dsc);
         else res = decode_indexed(decoder, dsc);
     }
@@ -1042,53 +1055,6 @@ static lv_result_t decode_compressed(lv_image_decoder_t * decoder, lv_image_deco
     return LV_RESULT_INVALID;
 #endif
 }
-
-static lv_result_t decode_indexed_line_i1(const lv_color32_t * palette, int32_t x,
-                                          int32_t w_px, const uint8_t * in, lv_color32_t * out)
-{
-    /*8 pixels per byte, MSB first (bit 7 is the left-most pixel)*/
-    in += x >> 3;
-    int32_t shift = 7 - (x & 0x7);
-
-    int32_t i = 0;
-
-    /*Head: consume the rest of the first byte so the main loop starts byte-aligned.
-     *Skipped entirely when x is already byte-aligned (shift == 7).*/
-    if(shift != 7) {
-        uint8_t byte = *in++;
-        while(shift >= 0 && i < w_px) {
-            out[i++] = palette[(byte >> shift) & 0x1];
-            shift--;
-        }
-    }
-
-    /*Body: one full byte -> 8 pixels per iteration, fully unrolled.
-     *No per-pixel branch or shift bookkeeping, so the compiler can pipeline it.*/
-    for(; i + 8 <= w_px; i += 8) {
-        uint8_t byte = *in++;
-        out[i + 0] = palette[(byte >> 7) & 0x1];
-        out[i + 1] = palette[(byte >> 6) & 0x1];
-        out[i + 2] = palette[(byte >> 5) & 0x1];
-        out[i + 3] = palette[(byte >> 4) & 0x1];
-        out[i + 4] = palette[(byte >> 3) & 0x1];
-        out[i + 5] = palette[(byte >> 2) & 0x1];
-        out[i + 6] = palette[(byte >> 1) & 0x1];
-        out[i + 7] = palette[(byte >> 0) & 0x1];
-    }
-
-    /*Tail: the remaining 1..7 pixels of the last partial byte.*/
-    if(i < w_px) {
-        uint8_t byte = *in;
-        shift = 7;
-        for(; i < w_px; i++) {
-            out[i] = palette[(byte >> shift) & 0x1];
-            shift--;
-        }
-    }
-
-    return LV_RESULT_OK;
-}
-
 
 static lv_result_t decode_indexed_line_i2(const lv_color32_t * palette, int32_t x,
                                           int32_t w_px, const uint8_t * in, lv_color32_t * out)
@@ -1159,6 +1125,57 @@ static lv_result_t decode_indexed_line_i4(const lv_color32_t * palette, int32_t 
     return LV_RESULT_OK;
 }
 
+/*L1 (1bpp luminance): each bit directly encodes the luminance (0 or 255), there is no palette.*/
+static lv_result_t decode_l1_line(int32_t x, int32_t w_px, const uint8_t * in, lv_color32_t * out)
+{
+    LV_ASSERT(in != NULL);
+    LV_ASSERT(out != NULL);
+
+    lv_color32_t c0 = lv_color32_make(0, 0, 0, 0xFF);
+    lv_color32_t c1 = lv_color32_make(0xFF, 0xFF, 0xFF, 0xFF);
+
+    /*8 pixels per byte, MSB first (bit 7 is the left-most pixel)*/
+    in += x >> 3;
+    int32_t shift = 7 - (x & 0x7);
+
+    int32_t i = 0;
+
+    /*Head: consume the rest of the first byte so the main loop starts byte-aligned.
+     *Skipped entirely when x is already byte-aligned (shift == 7).*/
+    if(shift != 7) {
+        uint8_t byte = *in++;
+        while(shift >= 0 && i < w_px) {
+            out[i++] = ((byte >> shift) & 0x1) ? c1 : c0;
+            shift--;
+        }
+    }
+
+    /*Body: one full byte -> 8 pixels per iteration, fully unrolled.*/
+    for(; i + 8 <= w_px; i += 8) {
+        uint8_t byte = *in++;
+        out[i + 0] = (byte & 0x80) ? c1 : c0;
+        out[i + 1] = (byte & 0x40) ? c1 : c0;
+        out[i + 2] = (byte & 0x20) ? c1 : c0;
+        out[i + 3] = (byte & 0x10) ? c1 : c0;
+        out[i + 4] = (byte & 0x08) ? c1 : c0;
+        out[i + 5] = (byte & 0x04) ? c1 : c0;
+        out[i + 6] = (byte & 0x02) ? c1 : c0;
+        out[i + 7] = (byte & 0x01) ? c1 : c0;
+    }
+
+    /*Tail: the remaining 1..7 pixels of the last partial byte.*/
+    if(i < w_px) {
+        uint8_t byte = *in;
+        shift = 7;
+        for(; i < w_px; i++) {
+            out[i] = ((byte >> shift) & 0x1) ? c1 : c0;
+            shift--;
+        }
+    }
+
+    return LV_RESULT_OK;
+}
+
 static lv_result_t decode_indexed_line_i8(const lv_color32_t * palette, int32_t x,
                                           int32_t w_px, const uint8_t * in, lv_color32_t * out)
 {
@@ -1178,8 +1195,8 @@ static lv_result_t decode_indexed_line(lv_color_format_t color_format, const lv_
                                        int32_t w_px, const uint8_t * in, lv_color32_t * out)
 {
     switch(color_format) {
-        case LV_COLOR_FORMAT_I1:
-            return decode_indexed_line_i1(palette, x, w_px, in, out);
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
+            return decode_l1_line(x, w_px, in, out);
         case LV_COLOR_FORMAT_I2:
             return decode_indexed_line_i2(palette, x, w_px, in, out);
         case LV_COLOR_FORMAT_I4:

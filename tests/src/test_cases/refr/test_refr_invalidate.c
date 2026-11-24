@@ -90,9 +90,9 @@ void test_refr_inv_area_clipped_to_screen(void)
     TEST_ASSERT_TRUE(lv_area_is_equal(&untouched, &area));
 }
 
-void test_refr_inv_area_i1_rounded_to_byte_boundary(void)
+void test_refr_inv_area_l1_rounded_to_byte_boundary(void)
 {
-    refr_disp_create(64, 32, LV_COLOR_FORMAT_I1, LV_DISPLAY_RENDER_MODE_DIRECT, 1, 32);
+    refr_disp_create(64, 32, LV_COLOR_FORMAT_L1_HTILED_MSB, LV_DISPLAY_RENDER_MODE_DIRECT, 1, 32);
     refr_ctx.disp->inv_p = 0;
 
     lv_area_t area = {11, 5, 27, 9};

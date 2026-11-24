@@ -357,10 +357,9 @@ lv_result_t lv_draw_buf_from_image(lv_draw_buf_t * buf, const lv_image_dsc_t * i
 void lv_draw_buf_to_image(const lv_draw_buf_t * buf, lv_image_dsc_t * img);
 
 /**
- * Set the palette color of an indexed image. Valid only for `LV_COLOR_FORMAT_I1/2/4/8`
+ * Set the palette color of an indexed image. Valid only for `LV_COLOR_FORMAT_I2/4/8`
  * @param draw_buf pointer to an image descriptor
  * @param index the palette color to set:
- *   - for `LV_COLOR_FORMAT_I1`: 0..1
  *   - for `LV_COLOR_FORMAT_I2`: 0..3
  *   - for `LV_COLOR_FORMAT_I4`: 0..15
  *   - for `LV_COLOR_FORMAT_I8`: 0..255

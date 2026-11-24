@@ -43,7 +43,7 @@ const lv_color_filter_dsc_t lv_color_filter_shade = {.filter_cb = lv_color_filte
 uint8_t lv_color_format_get_bpp(lv_color_format_t cf)
 {
     switch(cf) {
-        case LV_COLOR_FORMAT_I1:
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
         case LV_COLOR_FORMAT_A1:
             return 1;
         case LV_COLOR_FORMAT_I2:
@@ -95,7 +95,7 @@ bool lv_color_format_has_alpha(lv_color_format_t src_cf)
         case LV_COLOR_FORMAT_A2:
         case LV_COLOR_FORMAT_A4:
         case LV_COLOR_FORMAT_A8:
-        case LV_COLOR_FORMAT_I1:
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
         case LV_COLOR_FORMAT_I2:
         case LV_COLOR_FORMAT_I4:
         case LV_COLOR_FORMAT_I8:

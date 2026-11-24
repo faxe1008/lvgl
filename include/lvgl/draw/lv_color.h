@@ -63,7 +63,7 @@ enum _lv_opacity_level_t {
  * @sa              lv_color_format_get_bpp
  */
 #define LV_COLOR_FORMAT_GET_BPP(cf) (       \
-                                            (cf) == LV_COLOR_FORMAT_I1 ? 1 :        \
+                                            (cf) == LV_COLOR_FORMAT_L1_HTILED_MSB ? 1 :        \
                                             (cf) == LV_COLOR_FORMAT_A1 ? 1 :        \
                                             (cf) == LV_COLOR_FORMAT_I2 ? 2 :        \
                                             (cf) == LV_COLOR_FORMAT_A2 ? 2 :        \
@@ -144,7 +144,8 @@ typedef enum {
 
     /*<=1 byte (+alpha) formats*/
     LV_COLOR_FORMAT_L8                = 0x06,
-    LV_COLOR_FORMAT_I1                = 0x07,
+    LV_COLOR_FORMAT_L1_HTILED_MSB     = 0x07,   /**< 1 bit per pixel luminance, 8 pixels per byte horizontally (row-wise),
+                                                  *  most significant bit first. Legacy name: `LV_COLOR_FORMAT_I1`. */
     LV_COLOR_FORMAT_I2                = 0x08,
     LV_COLOR_FORMAT_I4                = 0x09,
     LV_COLOR_FORMAT_I8                = 0x0A,
@@ -201,10 +202,14 @@ typedef enum {
 } lv_color_format_t;
 
 #define LV_COLOR_FORMAT_IS_ALPHA_ONLY(cf) ((cf) >= LV_COLOR_FORMAT_A1 && (cf) <= LV_COLOR_FORMAT_A8)
-#define LV_COLOR_FORMAT_IS_INDEXED(cf) ((cf) >= LV_COLOR_FORMAT_I1 && (cf) <= LV_COLOR_FORMAT_I8)
+#define LV_COLOR_FORMAT_IS_INDEXED(cf) ((cf) >= LV_COLOR_FORMAT_I2 && (cf) <= LV_COLOR_FORMAT_I8)
 #define LV_COLOR_FORMAT_IS_YUV(cf)  ((cf) >= LV_COLOR_FORMAT_YUV_START && (cf) <= LV_COLOR_FORMAT_YUV_END)
-#define LV_COLOR_INDEXED_PALETTE_SIZE(cf) ((cf) == LV_COLOR_FORMAT_I1 ? 2 :\
-                                           (cf) == LV_COLOR_FORMAT_I2 ? 4 :\
+/**
+ * L1 (1 bit per pixel luminance) color formats. L1 is not an indexed format: the bit
+ * directly encodes the luminance (0 or 255) and buffers carry no palette header.
+ */
+#define LV_COLOR_FORMAT_IS_L1(cf) ((cf) == LV_COLOR_FORMAT_L1_HTILED_MSB)
+#define LV_COLOR_INDEXED_PALETTE_SIZE(cf) ((cf) == LV_COLOR_FORMAT_I2 ? 4 :\
                                            (cf) == LV_COLOR_FORMAT_I4 ? 16 :\
                                            (cf) == LV_COLOR_FORMAT_I8 ? 256 : 0)
 

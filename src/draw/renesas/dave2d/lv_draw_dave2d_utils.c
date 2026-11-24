@@ -69,7 +69,7 @@ d2_u32 lv_draw_dave2d_lv_colour_fmt_to_d2_fmt(lv_color_format_t colour_format)
     d2_u32 d2_lvgl_mode = 0;
 
     switch(colour_format) {
-        case(LV_COLOR_FORMAT_I1):
+        case(LV_COLOR_FORMAT_L1_HTILED_MSB):
             d2_lvgl_mode = d2_mode_i1;
             break;
         case(LV_COLOR_FORMAT_I2):

@@ -132,25 +132,25 @@ static void rotate270_l8(const uint8_t * src, uint8_t * dst, int32_t src_width, 
  *   GLOBAL FUNCTIONS
  **********************/
 
-void lv_draw_i1_to_argb8888(const void * buf_i1, void * buf_argb8888, uint32_t width, uint32_t height,
-                            uint32_t buf_i1_stride, uint32_t buf_argb8888_stride, uint32_t index0_color, uint32_t index1_color)
+void lv_draw_l1_to_argb8888(const void * buf_l1, void * buf_argb8888, uint32_t width, uint32_t height,
+                            uint32_t buf_l1_stride, uint32_t buf_argb8888_stride, uint32_t index0_color, uint32_t index1_color)
 {
-    LV_CHECK_ARG(buf_i1 != NULL, return);
+    LV_CHECK_ARG(buf_l1 != NULL, return);
     LV_CHECK_ARG(buf_argb8888 != NULL, return);
 
-    /*Extract the bits of I1 px_map and convert them to ARGB8888*/
-    const uint8_t * src = buf_i1;
+    /*Extract the bits of L1 px_map and convert them to ARGB8888*/
+    const uint8_t * src = buf_l1;
     uint32_t * dst = buf_argb8888;
-    uint32_t i1_row_byte_count = width / 8;
+    uint32_t l1_row_byte_count = width / 8;
     for(uint32_t row = 0; row < height; row++) {
         uint32_t * dst_p = dst;
-        for(uint32_t i = 0; i < i1_row_byte_count; i++) {
+        for(uint32_t i = 0; i < l1_row_byte_count; i++) {
             /*From MSB to LSB (pixel 0 to pixel 7 in a byte)*/
             for(int32_t bit = 7; bit >= 0; bit--) {
                 *dst_p++ = ((src[i] >> bit) & 1) ? index1_color : index0_color;
             }
         }
-        src += buf_i1_stride;
+        src += buf_l1_stride;
         dst += buf_argb8888_stride / 4;
     }
 }
@@ -200,7 +200,7 @@ void lv_draw_rgb565_swap(void * buf, uint32_t buf_size_px)
 
 }
 
-void lv_draw_i1_invert(void * buf, uint32_t buf_size)
+void lv_draw_l1_invert(void * buf, uint32_t buf_size)
 {
     LV_CHECK_ARG(buf != NULL, return);
 
@@ -231,7 +231,7 @@ void lv_draw_i1_invert(void * buf, uint32_t buf_size)
     }
 }
 
-void lv_draw_i1_convert_to_vtiled(const void * buf, uint32_t buf_size, uint32_t width, uint32_t height,
+void lv_draw_l1_convert_to_vtiled(const void * buf, uint32_t buf_size, uint32_t width, uint32_t height,
                                   void * out_buf,
                                   uint32_t out_buf_size, bool bit_order_lsb)
 {

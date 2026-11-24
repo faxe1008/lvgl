@@ -51,7 +51,7 @@ uint32_t lv_nemagfx_cf_to_nema(lv_color_format_t cf)
             return NEMA_A4;
         case LV_COLOR_FORMAT_A8:
             return NEMA_A8;
-        case LV_COLOR_FORMAT_I1:
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
             return NEMA_L1;
         case LV_COLOR_FORMAT_I2:
             return NEMA_L2;

@@ -337,7 +337,7 @@ static void image_core_cb(lv_obj_t * parent, bool recolor, uint32_t startAt)
     LV_IMAGE_DECLARE(img_render_lvgl_logo_argb8888);
     LV_IMAGE_DECLARE(img_render_lvgl_logo_argb8888_premultiplied);
     LV_IMAGE_DECLARE(img_render_lvgl_logo_l8);
-    LV_IMAGE_DECLARE(img_render_lvgl_logo_i1);
+    LV_IMAGE_DECLARE(img_render_lvgl_logo_l1);
     LV_IMAGE_DECLARE(img_render_lvgl_logo_rgb565a8);
 
     const void * srcs[] = {
@@ -350,7 +350,7 @@ static void image_core_cb(lv_obj_t * parent, bool recolor, uint32_t startAt)
         &img_render_lvgl_logo_l8,
         NULL,
         &img_render_lvgl_logo_rgb565a8,
-        &img_render_lvgl_logo_i1,
+        &img_render_lvgl_logo_l1,
     };
 
     const void * names[] = {
@@ -361,10 +361,10 @@ static void image_core_cb(lv_obj_t * parent, bool recolor, uint32_t startAt)
         "RGB\n565",
         "RGB\n565\nSWAP",
         "L8",
-        "", /*Make sure that RGB565A8 and I1 are on the same page.
+        "", /*Make sure that RGB565A8 and L1 are on the same page.
               Both are disabled in VGLite as they are not supported*/
         "RGB\n565A8",
-        "I1",
+        "L1",
     };
 
     uint32_t stopAt = startAt + LV_MIN(sizeof(srcs) / sizeof(void *) - startAt, 4);

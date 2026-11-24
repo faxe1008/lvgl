@@ -69,7 +69,7 @@ void lv_qrcode_set_size(lv_obj_t * obj, int32_t size)
     LV_CHECK_OBJ(obj, MY_CLASS, return);
 
     lv_draw_buf_t * old_buf = lv_canvas_get_draw_buf(obj);
-    lv_draw_buf_t * new_buf = lv_draw_buf_create(size, size, LV_COLOR_FORMAT_I1, LV_STRIDE_AUTO);
+    lv_draw_buf_t * new_buf = lv_draw_buf_create(size, size, LV_COLOR_FORMAT_L1_HTILED_MSB, LV_STRIDE_AUTO);
     if(new_buf == NULL) {
         LV_LOG_ERROR("malloc failed for canvas buffer");
         return;
@@ -97,10 +97,16 @@ void lv_qrcode_set_dark_color(lv_obj_t * obj, lv_color_t color)
     qrcode->dark_color = color;
 
     /*Apply the color right away so it takes effect even if the QR code has
-     *already been rendered (e.g. the color is set after the data)*/
+     *already been rendered (e.g. the color is set after the data).
+     *L1 has no palette, so the color is quantized when the code is redrawn.*/
     lv_draw_buf_t * draw_buf = lv_canvas_get_draw_buf(obj);
     if(draw_buf == NULL) return;
-    lv_canvas_set_palette(obj, 1, lv_color_to_32(color, LV_OPA_COVER));
+    if(LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf)) {
+        qrcode_mark_dirty(obj);
+    }
+    else {
+        lv_canvas_set_palette(obj, 1, lv_color_to_32(color, LV_OPA_COVER));
+    }
     lv_image_cache_drop(draw_buf);
 }
 
@@ -114,10 +120,16 @@ void lv_qrcode_set_light_color(lv_obj_t * obj, lv_color_t color)
     qrcode->light_color = color;
 
     /*Apply the color right away so it takes effect even if the QR code has
-     *already been rendered (e.g. the color is set after the data)*/
+     *already been rendered (e.g. the color is set after the data).
+     *L1 has no palette, so the color is quantized when the code is redrawn.*/
     lv_draw_buf_t * draw_buf = lv_canvas_get_draw_buf(obj);
     if(draw_buf == NULL) return;
-    lv_canvas_set_palette(obj, 0, lv_color_to_32(color, LV_OPA_COVER));
+    if(LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf)) {
+        qrcode_mark_dirty(obj);
+    }
+    else {
+        lv_canvas_set_palette(obj, 0, lv_color_to_32(color, LV_OPA_COVER));
+    }
     lv_image_cache_drop(draw_buf);
 }
 
@@ -371,11 +383,20 @@ static lv_result_t qrcode_encode(lv_obj_t * obj)
     const void * data = qrcode->data;
     const uint32_t data_len = qrcode->data_len;
 
-    lv_draw_buf_clear(draw_buf, NULL);
-    /*Set the palette directly on the draw buffer to avoid an extra invalidation here;
-     *the caller (or the draw pass) takes care of refreshing the object*/
-    lv_draw_buf_set_palette(draw_buf, 0, lv_color_to_32(qrcode->light_color, LV_OPA_COVER));
-    lv_draw_buf_set_palette(draw_buf, 1, lv_color_to_32(qrcode->dark_color, LV_OPA_COVER));
+    if(LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf)) {
+        /*L1 has no palette: a bit is 1 for white and 0 for black. Fill (not clear) the
+         *palette-less buffer with the light color, quantized to the two levels.*/
+        uint8_t * buf = lv_draw_buf_goto_xy(draw_buf, 0, 0);
+        lv_memset(buf, (qrcode->light_color.blue & 0x1) ? 0xFF : 0x00,
+                  draw_buf->header.h * draw_buf->header.stride);
+    }
+    else {
+        lv_draw_buf_clear(draw_buf, NULL);
+        /*Set the palette directly on the draw buffer to avoid an extra invalidation here;
+         *the caller (or the draw pass) takes care of refreshing the object*/
+        lv_draw_buf_set_palette(draw_buf, 0, lv_color_to_32(qrcode->light_color, LV_OPA_COVER));
+        lv_draw_buf_set_palette(draw_buf, 1, lv_color_to_32(qrcode->dark_color, LV_OPA_COVER));
+    }
     lv_image_cache_drop(draw_buf);
 
     if(data_len > qrcodegen_BUFFER_LEN_MAX) return LV_RESULT_INVALID;
@@ -426,8 +447,13 @@ static lv_result_t qrcode_encode(lv_obj_t * obj)
     int32_t obj_w = draw_buf->header.w;
     int scaled = qr_size * scale;
     int margin = (obj_w - scaled) / 2;
-    uint8_t * buf_u8 = draw_buf->data + 8;    /*+8 skip the palette*/
-    lv_color_t c = lv_color_hex(1);
+    bool is_l1 = LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf);
+    /*Indexed formats have a palette before the pixels; L1 does not. A module is 1 for
+     *white and 0 for black on L1, so the bits are not inverted as they are for I1.*/
+    uint8_t * buf_u8 = draw_buf->data + (is_l1 ? 0 : 8);
+    lv_color_t c = is_l1 ? lv_color_hex(qrcode->dark_color.blue & 0x1) : lv_color_hex(1);
+    const uint8_t light_bit = qrcode->light_color.blue & 0x1;
+    const uint8_t dark_bit = qrcode->dark_color.blue & 0x1;
 
     /* Copy the qr code canvas:
      * A simple `lv_canvas_set_px` would work but it's slow for so many pixels.
@@ -450,11 +476,14 @@ static lv_result_t qrcode_encode(lv_obj_t * obj)
                 }
             }
             else {
-                if(!a) b |= (1 << (7 - p));
+                if(is_l1) {
+                    if(a ? dark_bit : light_bit) b |= (1 << (7 - p));
+                }
+                else if(!a) b |= (1 << (7 - p));
                 p++;
                 if(p == 8) {
                     uint32_t px = row_byte_cnt * y + (x >> 3);
-                    buf_u8[px] = ~b;
+                    buf_u8[px] = is_l1 ? b : ~b;
                     b = 0;
                     p = 0;
                 }
@@ -463,11 +492,16 @@ static lv_result_t qrcode_encode(lv_obj_t * obj)
 
         /*Process the last byte of the row*/
         if(p) {
-            /*Make the rest of the bits white*/
-            b |= (1 << (8 - p)) - 1;
+            /*Make the rest of the bits light*/
+            uint8_t pad = (1 << (8 - p)) - 1;
+            if(is_l1) {
+                if(light_bit) b |= pad;
+                else b &= ~pad;
+            }
+            else b |= pad;
 
             uint32_t px = row_byte_cnt * y + (x >> 3);
-            buf_u8[px] = ~b;
+            buf_u8[px] = is_l1 ? b : ~b;
         }
 
         /*The Qr is probably scaled so simply to the repeated rows*/

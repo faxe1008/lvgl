@@ -528,7 +528,7 @@ void test_image_get_scaled_size(void)
 
 static void create_test_images(int32_t radius, int32_t scale, int32_t angle)
 {
-    LV_IMAGE_DECLARE(test_I1_NONE_align64);
+    LV_IMAGE_DECLARE(test_L1_HTILED_MSB_NONE_align64);
     LV_IMAGE_DECLARE(test_I2_NONE_align64);
     LV_IMAGE_DECLARE(test_I4_NONE_align64);
     LV_IMAGE_DECLARE(test_I8_NONE_align64);
@@ -543,7 +543,7 @@ static void create_test_images(int32_t radius, int32_t scale, int32_t angle)
     LV_IMAGE_DECLARE(test_ARGB8888_NONE_align64);
 
     const lv_image_dsc_t * img_dscs[] = {
-        &test_I1_NONE_align64,
+        &test_L1_HTILED_MSB_NONE_align64,
         &test_I2_NONE_align64,
         &test_I4_NONE_align64,
         &test_I8_NONE_align64,
@@ -558,7 +558,7 @@ static void create_test_images(int32_t radius, int32_t scale, int32_t angle)
         &test_ARGB8888_NONE_align64,
     };
     const char * names[] = {
-        "I1",
+        "L1_HTILED_MSB",
         "I2",
         "I4",
         "I8",

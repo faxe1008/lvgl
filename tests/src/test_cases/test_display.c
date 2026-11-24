@@ -112,30 +112,30 @@ void test_get_invalidated_drawbuf_size_rgb888_full(void)
     exec_invalidated_drawbuf_size_test(&test_set);
 }
 
-void test_get_invalidated_drawbuf_size_i1_full(void)
+void test_get_invalidated_drawbuf_size_l1_full(void)
 {
     struct display_area_test_set test_set =  {
         .width = 180,
         .height = 90,
-        .color_format = LV_COLOR_FORMAT_I1,
+        .color_format = LV_COLOR_FORMAT_L1_HTILED_MSB,
         .render_mode = LV_DISPLAY_RENDER_MODE_FULL,
         .invalidated_width = 180,
         .invalidated_height = 90,
-        .expected_buf0_size = lv_draw_buf_width_to_stride(180, LV_COLOR_FORMAT_I1) * 90,
+        .expected_buf0_size = lv_draw_buf_width_to_stride(180, LV_COLOR_FORMAT_L1_HTILED_MSB) * 90,
     };
     exec_invalidated_drawbuf_size_test(&test_set);
 }
 
-void test_get_invalidated_drawbuf_size_i1_partial(void)
+void test_get_invalidated_drawbuf_size_l1_partial(void)
 {
     struct display_area_test_set test_set = {
         .width = 180,
         .height = 90,
-        .color_format = LV_COLOR_FORMAT_I1,
+        .color_format = LV_COLOR_FORMAT_L1_HTILED_MSB,
         .render_mode = LV_DISPLAY_RENDER_MODE_PARTIAL,
         .invalidated_width = 180,
         .invalidated_height = 10,
-        .expected_buf0_size = lv_draw_buf_width_to_stride(180, LV_COLOR_FORMAT_I1) * 10,
+        .expected_buf0_size = lv_draw_buf_width_to_stride(180, LV_COLOR_FORMAT_L1_HTILED_MSB) * 10,
     };
     exec_invalidated_drawbuf_size_test(&test_set);
 }

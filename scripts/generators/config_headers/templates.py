@@ -109,7 +109,7 @@ __CONFIG_OPTIONS__
 #if !defined(LV_COLOR_FORMAT_DEFAULT) && defined(LV_COLOR_DEPTH)
     #warning LV_COLOR_DEPTH is deprecated and will be removed in a future release. Define LV_COLOR_FORMAT_DEFAULT instead
     #if LV_COLOR_DEPTH == 1
-        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_I1
+        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_L1_HTILED_MSB
     #elif LV_COLOR_DEPTH == 8
         #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_L8
     #elif LV_COLOR_DEPTH == 16

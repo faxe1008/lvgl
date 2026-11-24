@@ -109,7 +109,7 @@ class ColorFormat(Enum):
     RAW = 0x01,
     RAW_ALPHA = 0x02,
     L8 = 0x06
-    I1 = 0x07
+    L1_HTILED_MSB = 0x07
     I2 = 0x08
     I4 = 0x09
     I8 = 0x0A
@@ -134,7 +134,7 @@ class ColorFormat(Enum):
         """
         cf_map = {
             ColorFormat.L8: 8,
-            ColorFormat.I1: 1,
+            ColorFormat.L1_HTILED_MSB: 1,
             ColorFormat.I2: 2,
             ColorFormat.I4: 4,
             ColorFormat.I8: 8,
@@ -158,12 +158,12 @@ class ColorFormat(Enum):
     @property
     def ncolors(self) -> int:
         """
-        Return number of colors in palette if cf is indexed1/2/4/8.
-        Return zero if cf is not indexed format
+        Return number of colors in palette if cf is indexed2/4/8.
+        Return zero if cf is not indexed format (L1 is not indexed: its
+        bit directly encodes the luminance and buffers carry no palette)
         """
 
         cf_map = {
-            ColorFormat.I1: 2,
             ColorFormat.I2: 4,
             ColorFormat.I4: 16,
             ColorFormat.I8: 256,
@@ -864,6 +864,14 @@ class LVGLImage:
             for a in transparency:
                 data += [0, 0, 0, a]
             encoder = png.Writer(self.w, self.h, greyscale=False, alpha=True)
+        elif self.cf == ColorFormat.L1_HTILED_MSB:
+            # 1 bit per pixel luminance, no palette
+            encoder = png.Writer(self.w,
+                                 self.h,
+                                 bitdepth=1,
+                                 greyscale=True,
+                                 alpha=False)
+            data = unpack_colors(self.data, self.cf, self.w)
         elif self.cf == ColorFormat.L8:
             # to grayscale
             encoder = png.Writer(self.w,
@@ -903,7 +911,7 @@ class LVGLImage:
                  nema_gfx=False):
         """
         Create lvgl image from png file.
-        If cf is none, used I1/2/4/8 based on palette size
+        If cf is none, used L1/2/4/8 based on palette size
         """
 
         self.background = background
@@ -921,6 +929,8 @@ class LVGLImage:
 
         if cf is None or cf.is_indexed:  # palette mode
             self._png_to_indexed(cf, filename)
+        elif cf == ColorFormat.L1_HTILED_MSB:  # 1 bit per pixel luminance
+            self._png_to_l1(cf, filename)
         elif cf.is_alpha_only:
             self._png_to_alpha_only(cf, filename)
         elif cf == ColorFormat.AL88:
@@ -956,13 +966,19 @@ class LVGLImage:
         palette_len = len(palette)
         if auto_cf:
             if palette_len <= 2:
-                cf = ColorFormat.I1
+                cf = ColorFormat.L1_HTILED_MSB
             elif palette_len <= 4:
                 cf = ColorFormat.I2
             elif palette_len <= 16:
                 cf = ColorFormat.I4
             else:
                 cf = ColorFormat.I8
+
+        if cf == ColorFormat.L1_HTILED_MSB:
+            # A 1-bit image is luminance (not indexed) in v10; convert by luminance
+            # instead of palette indices
+            self._png_to_l1(cf, filename)
+            return
 
         if palette_len != cf.ncolors:
             if not auto_cf:
@@ -1064,6 +1080,36 @@ class LVGLImage:
                 rawdata += uint8_t(int(self.linear_to_sRGB(luma) * 255))
 
         self.set_data(ColorFormat.L8, w, h, rawdata)
+
+    def _png_to_l1(self, cf: ColorFormat, filename: str):
+        # L1 is 1 bit per pixel luminance (not indexed, no palette).
+        # The threshold (128) mirrors the renderer's LV_DRAW_SW_L1_LUM_THRESHOLD default (127:
+        # pixels brighter than 127 are set), MSB first, 8 pixels per byte.
+        reader = png.Reader(str(filename))
+        w, h, rows, info = reader.asRGBA8()
+        rawdata = bytearray()
+        for row in rows:
+            R = row[0::4]
+            G = row[1::4]
+            B = row[2::4]
+            A = row[3::4]
+            bits = []
+            for r, g, b, a in zip(R, G, B, A):
+                r, g, b, a = color_pre_multiply(r, g, b, a, self.background)
+                r = self.sRGB_to_linear(r / 255.0)
+                g = self.sRGB_to_linear(g / 255.0)
+                b = self.sRGB_to_linear(b / 255.0)
+                luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                bits.append(1 if int(self.linear_to_sRGB(luma) * 255) >= 128 else 0)
+            for i in range(0, len(bits), 8):
+                byte = 0
+                for j in range(8):
+                    byte <<= 1
+                    if i + j < len(bits):
+                        byte |= bits[i + j]
+                rawdata += uint8_t(byte)
+
+        self.set_data(cf, w, h, rawdata)
 
     def _png_to_colormap(self, cf, filename: str):
 
@@ -1441,10 +1487,10 @@ def main():
     parser.add_argument(
         '--cf',
         help=("bin image color format, use AUTO for automatically "
-              "choose from I1/2/4/8"),
+              "choose from L1_HTILED_MSB/2/4/8"),
         default="I8",
         choices=[
-            "L8", "I1", "I2", "I4", "I8", "A1", "A2", "A4", "A8", "AL88", "ARGB8888",
+            "L8", "L1_HTILED_MSB", "I2", "I4", "I8", "A1", "A2", "A4", "A8", "AL88", "ARGB8888",
             "XRGB8888", "RGB565", "RGB565_SWAPPED", "RGB565A8", "ARGB8565", "RGB888", "AUTO",
             "RAW", "RAW_ALPHA", "ARGB8888_PREMULTIPLIED"
         ])

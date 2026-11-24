@@ -28,19 +28,19 @@ extern "C" {
  **********************/
 
 /**
- * Converts an I1 buffer to ARGB8888 format.
- * @param buf_i1              pointer to buffer with I1 formatted render
+ * Converts an L1 buffer to ARGB8888 format.
+ * @param buf_l1              pointer to buffer with L1 formatted render
  * @param buf_argb8888        pointer to buffer for ARGB8888 render
  * @param width               width in pixels of the area.
  *                            must be a multiple of 8.
  * @param height              height in pixels of the area
- * @param buf_i1_stride       stride of i1 buffer in bytes
+ * @param buf_l1_stride       stride of l1 buffer in bytes
  * @param buf_argb8888_stride stride of argb8888 buffer in bytes
- * @param index0_color        color of the 0 bits of i1 buf
- * @param index1_color        color of the 1 bits of i1 buf
+ * @param index0_color        color of the 0 bits of l1 buf
+ * @param index1_color        color of the 1 bits of l1 buf
  */
-void lv_draw_i1_to_argb8888(const void * buf_i1, void * buf_argb8888, uint32_t width, uint32_t height,
-                            uint32_t buf_i1_stride, uint32_t buf_argb8888_stride, uint32_t index0_color, uint32_t index1_color);
+void lv_draw_l1_to_argb8888(const void * buf_l1, void * buf_argb8888, uint32_t width, uint32_t height,
+                            uint32_t buf_l1_stride, uint32_t buf_argb8888_stride, uint32_t index0_color, uint32_t index1_color);
 
 /**
  * Swap the upper and lower byte of an RGB565 buffer.
@@ -52,18 +52,18 @@ void lv_draw_i1_to_argb8888(const void * buf_i1, void * buf_argb8888, uint32_t w
 void lv_draw_rgb565_swap(void * buf, uint32_t buf_size_px);
 
 /**
- * Invert a draw buffer in the I1 color format.
+ * Invert a draw buffer in the L1 color format.
  * Conventionally, a bit is set to 1 during blending if the luminance is greater than 127.
  * Depending on the display controller used, you might want to have different behavior.
  * The inversion will be performed in place.
  * @param buf          pointer to the buffer to be inverted
  * @param buf_size     size of the buffer in bytes
  */
-void lv_draw_i1_invert(void * buf, uint32_t buf_size);
+void lv_draw_l1_invert(void * buf, uint32_t buf_size);
 
 
 /**
- * Convert a draw buffer in I1 color format from htiled (row-wise)
+ * Convert a draw buffer in L1 color format from htiled (row-wise)
  * to vtiled (column-wise) buffer layout. The conversion assumes that the buffer width
  * and height is rounded to a multiple of 8.
  * @param buf           pointer to the buffer to be converted
@@ -74,7 +74,7 @@ void lv_draw_i1_invert(void * buf, uint32_t buf_size);
  * @param out_buf_size  size of the output buffer in bytes
  * @param bit_order_lsb bit order of the resulting vtiled buffer
  */
-void lv_draw_i1_convert_to_vtiled(const void * buf, uint32_t buf_size, uint32_t width, uint32_t height,
+void lv_draw_l1_convert_to_vtiled(const void * buf, uint32_t buf_size, uint32_t width, uint32_t height,
                                   void * out_buf,
                                   uint32_t out_buf_size, bool bit_order_lsb);
 

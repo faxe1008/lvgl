@@ -528,7 +528,7 @@ bool lv_vg_lite_is_src_cf_supported(lv_color_format_t cf)
         case LV_COLOR_FORMAT_ARGB2222:
             return true;
 
-        case LV_COLOR_FORMAT_I1:
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
         case LV_COLOR_FORMAT_I2:
         case LV_COLOR_FORMAT_I4:
             return vg_lite_query_feature(gcFEATURE_BIT_VG_INDEX_ENDIAN) ? true : false;
@@ -565,7 +565,7 @@ vg_lite_buffer_format_t lv_vg_lite_vg_fmt(lv_color_format_t cf)
         case LV_COLOR_FORMAT_L8:
             return VG_LITE_L8;
 
-        case LV_COLOR_FORMAT_I1:
+        case LV_COLOR_FORMAT_L1_HTILED_MSB:
             return VG_LITE_INDEX_1;
 
         case LV_COLOR_FORMAT_I2:

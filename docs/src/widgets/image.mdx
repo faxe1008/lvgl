@@ -115,7 +115,7 @@ effect.
 | <ApiLink name="lv_image_set_antialias" display="lv_image_set_antialias(img, true)" /> | Higher quality at the cost of speed. |
 
 Transformations need the full pixel buffer, so they don't work on
-indexed (`LV_COLOR_FORMAT_I1/2/4/8`) or alpha-only formats — use ARGB,
+indexed (`LV_COLOR_FORMAT_I2/4/8`) or alpha-only formats — use ARGB,
 RGB or A8 for anything you plan to rotate or scale. The widget's own
 `get_width/height/x/y` still return the untransformed values.
 

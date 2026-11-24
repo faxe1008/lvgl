@@ -67,7 +67,7 @@ def expand(cf: str, rows: np.ndarray, w: int) -> np.ndarray:
         # Two bytes per pixel, luminance then alpha; the colour is the luminance
         return np.repeat(rows[:, :w * 2].reshape(h, w, 2)[:, :, :1], 3, axis=2)
 
-    if cf == "i1":
+    if cf == "l1":
         # One bit per pixel, most significant bit first, black or white
         bits = np.unpackbits(rows, axis=1)[:, :w]
         return np.repeat((bits * 255).reshape(h, w, 1), 3, axis=2)
@@ -81,7 +81,7 @@ def expand(cf: str, rows: np.ndarray, w: int) -> np.ndarray:
 # then quietly drift out of step with lv_color.h.
 CF_BPP = {
     "rgb565": 16, "rgb565_swapped": 16, "rgb888": 24, "xrgb8888": 32,
-    "argb8888": 32, "argb8888_premultiplied": 32, "l8": 8, "al88": 16, "i1": 1,
+    "argb8888": 32, "argb8888_premultiplied": 32, "l8": 8, "al88": 16, "l1": 1,
 }
 
 

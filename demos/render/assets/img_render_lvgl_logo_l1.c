@@ -17,15 +17,13 @@
 #define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-#ifndef LV_ATTRIBUTE_IMG_RENDER_LVGL_LOGO_I1
-#define LV_ATTRIBUTE_IMG_RENDER_LVGL_LOGO_I1
+#ifndef LV_ATTRIBUTE_IMG_RENDER_LVGL_LOGO_L1
+#define LV_ATTRIBUTE_IMG_RENDER_LVGL_LOGO_L1
 #endif
 
 static const
-LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_RENDER_LVGL_LOGO_I1
-uint8_t img_render_lvgl_logo_i1_map[] = {
-
-    0x00,0x00,0x00,0xff,0xff,0xff,0xff,0xff,
+LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_RENDER_LVGL_LOGO_L1
+uint8_t img_render_lvgl_logo_l1_map[] = {
 
     0x20,0x00,0x00,0x18,
     0xc0,0x00,0x00,0x04,
@@ -60,14 +58,14 @@ uint8_t img_render_lvgl_logo_i1_map[] = {
 
 };
 
-const lv_image_dsc_t img_render_lvgl_logo_i1 = {
+const lv_image_dsc_t img_render_lvgl_logo_l1 = {
   .header.magic = LV_IMAGE_HEADER_MAGIC,
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_COLOR_FORMAT_L1_HTILED_MSB,
   .header.flags = 0,
   .header.w = 30,
   .header.h = 30,
   .header.stride = 4,
-  .data_size = sizeof(img_render_lvgl_logo_i1_map),
-  .data = img_render_lvgl_logo_i1_map,
+  .data_size = sizeof(img_render_lvgl_logo_l1_map),
+  .data = img_render_lvgl_logo_l1_map,
 };
 

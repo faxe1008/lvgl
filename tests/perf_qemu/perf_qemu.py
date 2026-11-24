@@ -43,7 +43,7 @@ TARGETS = {
 # harness/bench.h. CI runs a subset; the rest are here to be tried locally.
 FORMATS = [
     "rgb565", "rgb565_swapped", "rgb888", "xrgb8888",
-    "argb8888", "argb8888_premultiplied", "l8", "al88", "i1",
+    "argb8888", "argb8888_premultiplied", "l8", "al88", "l1",
 ]
 SUITES = ["bench", "render"]
 OPTS = ["Os", "O2", "O3"]

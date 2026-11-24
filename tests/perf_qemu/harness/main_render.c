@@ -19,7 +19,7 @@
 static const lv_opa_t g_opas[] = { 255, BENCH_OPA_LOW };
 
 /*"LVD1", w, h, cf, stride. Rows are written at their real stride rather than packed,
- *because L8, AL88 and I1 do not have a whole number of bytes per pixel to pack to, and
+ *because L8, AL88 and L1 do not have a whole number of bytes per pixel to pack to, and
  *because the host has to index them exactly the way lv_test_screenshot_compare.c does.*/
 static uint32_t g_hdr[5] = { 0x3144564Cu, BENCH_HOR_RES, BENCH_VER_RES, 0, 0 };
 
@@ -45,12 +45,9 @@ static void dump_buf(const lv_draw_buf_t * draw_buf, const char * scene, uint32_
     g_hdr[4] = stride;
     sh_write(h, g_hdr, sizeof(g_hdr));
 
-    /*An I1 buffer starts with an 8 byte palette that the pixels follow, which is what
-     *lv_test_screenshot_compare.c skips before it reads the rows. Skipping it here too
-     *means the file is h rows of stride bytes for every format, and the host needs no
+    /*The file is h rows of stride bytes for every format, and the host needs no
      *special case.*/
     const uint8_t * px = draw_buf->data;
-    if(draw_buf->header.cf == LV_COLOR_FORMAT_I1) px += 8;
     sh_write(h, px, (size_t)stride * draw_buf->header.h);
     sh_close(h);
 }

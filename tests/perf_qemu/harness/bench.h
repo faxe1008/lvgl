@@ -36,7 +36,7 @@
 #define PERF_QEMU_CF_argb8888_premultiplied 6
 #define PERF_QEMU_CF_l8                    7
 #define PERF_QEMU_CF_al88                  8
-#define PERF_QEMU_CF_i1                    9
+#define PERF_QEMU_CF_l1                    9
 
 #if PERF_QEMU_CF == PERF_QEMU_CF_rgb565
     #define BENCH_CF      LV_COLOR_FORMAT_RGB565
@@ -62,18 +62,18 @@
 #elif PERF_QEMU_CF == PERF_QEMU_CF_al88
     #define BENCH_CF      LV_COLOR_FORMAT_AL88
     #define BENCH_CF_NAME "al88"
-#elif PERF_QEMU_CF == PERF_QEMU_CF_i1
-    #define BENCH_CF      LV_COLOR_FORMAT_I1
-    #define BENCH_CF_NAME "i1"
+#elif PERF_QEMU_CF == PERF_QEMU_CF_l1
+    #define BENCH_CF      LV_COLOR_FORMAT_L1_HTILED_MSB
+    #define BENCH_CF_NAME "l1"
 #else
     #error "define PERF_QEMU_CF to one of the PERF_QEMU_CF_* values above"
 #endif
 
 /*Every format has reference images at full opacity and at one partial value. That partial
- *value is 192 for I1 and 128 for the rest, following the per-format tests in
+ *value is 192 for L1 and 128 for the rest, following the per-format tests in
  *tests/src/test_cases/draw, so that every scene rendered here has a reference to compare
- *against. Rendering I1 at 128 produces 19 images that nothing was ever stored for.*/
-#if PERF_QEMU_CF == PERF_QEMU_CF_i1
+ *against. Rendering L1 at 128 produces 19 images that nothing was ever stored for.*/
+#if PERF_QEMU_CF == PERF_QEMU_CF_l1
     #define BENCH_OPA_LOW 192
 #else
     #define BENCH_OPA_LOW 128

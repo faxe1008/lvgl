@@ -68,6 +68,9 @@ lv_result_t lv_draw_buf_convert_premultiply(lv_draw_buf_t * draw_buf)
             }
         }
     }
+    else if(LV_COLOR_FORMAT_IS_L1(cf)) {
+        /*L1 is pure luminance (no palette, no alpha channel): nothing to premultiply.*/
+    }
     else if(cf == LV_COLOR_FORMAT_ARGB8888) {
         if(LV_RESULT_INVALID == LV_DRAW_CONVERT_PREMULTIPLY_ARGB8888(draw_buf)) {
             uint32_t h = draw_buf->header.h;

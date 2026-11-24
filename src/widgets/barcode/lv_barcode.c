@@ -82,10 +82,16 @@ void lv_barcode_set_dark_color(lv_obj_t * obj, lv_color_t color)
     if(lv_color_eq(barcode->dark_color, color)) return;
     barcode->dark_color = color;
 
-    /*Write the palette now so the color also applies to bars that are already drawn*/
+    /*Write the palette now so the color also applies to bars that are already drawn.
+     *L1 has no palette, so the color is quantized when the bars are redrawn.*/
     lv_draw_buf_t * draw_buf = lv_canvas_get_draw_buf(obj);
     if(draw_buf == NULL) return;
-    lv_canvas_set_palette(obj, 1, lv_color_to_32(color, LV_OPA_COVER));
+    if(LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf)) {
+        barcode_mark_dirty(obj);
+    }
+    else {
+        lv_canvas_set_palette(obj, 1, lv_color_to_32(color, LV_OPA_COVER));
+    }
     lv_image_cache_drop(draw_buf);
 }
 
@@ -98,10 +104,16 @@ void lv_barcode_set_light_color(lv_obj_t * obj, lv_color_t color)
     if(lv_color_eq(barcode->light_color, color)) return;
     barcode->light_color = color;
 
-    /*Write the palette now so the color also applies to bars that are already drawn*/
+    /*Write the palette now so the color also applies to bars that are already drawn.
+     *L1 has no palette, so the color is quantized when the bars are redrawn.*/
     lv_draw_buf_t * draw_buf = lv_canvas_get_draw_buf(obj);
     if(draw_buf == NULL) return;
-    lv_canvas_set_palette(obj, 0, lv_color_to_32(color, LV_OPA_COVER));
+    if(LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf)) {
+        barcode_mark_dirty(obj);
+    }
+    else {
+        lv_canvas_set_palette(obj, 0, lv_color_to_32(color, LV_OPA_COVER));
+    }
     lv_image_cache_drop(draw_buf);
 }
 
@@ -356,11 +368,11 @@ static bool lv_barcode_change_buf_size(lv_obj_t * obj, int32_t w, int32_t h)
     if(old_buf != NULL &&
        (int32_t)old_buf->header.w == w &&
        (int32_t)old_buf->header.h == h &&
-       old_buf->header.cf == LV_COLOR_FORMAT_I1) {
+       old_buf->header.cf == LV_COLOR_FORMAT_L1_HTILED_MSB) {
         return true;
     }
 
-    lv_draw_buf_t * new_buf = lv_draw_buf_create(w, h, LV_COLOR_FORMAT_I1, LV_STRIDE_AUTO);
+    lv_draw_buf_t * new_buf = lv_draw_buf_create(w, h, LV_COLOR_FORMAT_L1_HTILED_MSB, LV_STRIDE_AUTO);
     if(new_buf == NULL) {
         LV_LOG_ERROR("malloc failed for canvas buffer");
         return false;
@@ -376,12 +388,22 @@ static bool lv_barcode_change_buf_size(lv_obj_t * obj, int32_t w, int32_t h)
 static void lv_barcode_clear(lv_obj_t * obj)
 {
     LV_ASSERT_NULL(obj);
+    lv_barcode_t * barcode = (lv_barcode_t *)obj;
     lv_draw_buf_t * draw_buf = lv_canvas_get_draw_buf(obj);
     if(!draw_buf) {
         return;
     }
 
-    lv_draw_buf_clear(draw_buf, NULL);
+    if(LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf)) {
+        /*L1 has no palette, so clear (memset 0) would show black; fill with the
+         *light color instead to keep an empty barcode looking like paper*/
+        uint8_t * buf = lv_draw_buf_goto_xy(draw_buf, 0, 0);
+        lv_memset(buf, (barcode->light_color.blue & 0x1) ? 0xFF : 0x00,
+                  draw_buf->header.h * draw_buf->header.stride);
+    }
+    else {
+        lv_draw_buf_clear(draw_buf, NULL);
+    }
     lv_image_cache_drop(draw_buf);
     lv_obj_invalidate(obj);
 }
@@ -562,14 +584,27 @@ static lv_result_t barcode_fill(lv_obj_t * obj)
     lv_display_enable_invalidation(lv_obj_get_display(obj), false);
 
     uint32_t stride = draw_buf->header.stride;
-    const lv_color_t color = lv_color_hex(1);
+    bool is_l1 = LV_COLOR_FORMAT_IS_L1(draw_buf->header.cf);
+    /*L1 has no palette: a bit is 1 for white and 0 for black, and the colors are
+     *quantized accordingly. The palette-less buffer has to be filled (not cleared)
+     *with the light color.*/
+    uint8_t light_bit = barcode->light_color.blue & 0x1;
+    uint8_t dark_bit = barcode->dark_color.blue & 0x1;
+    const lv_color_t color = is_l1 ? lv_color_hex(dark_bit) : lv_color_hex(1);
+    const uint8_t bar_byte = is_l1 ? (dark_bit ? 0xFF : 0x00) : 0xFF;
 
-    lv_draw_buf_clear(draw_buf, NULL);
+    if(is_l1) {
+        uint8_t * buf = lv_draw_buf_goto_xy(draw_buf, 0, 0);
+        lv_memset(buf, light_bit ? 0xFF : 0x00, buf_h * stride);
+    }
+    else {
+        lv_draw_buf_clear(draw_buf, NULL);
 
-    /*Set the palette on the draw buffer, not via lv_canvas_set_palette(), to avoid an
-     *invalidation here - the caller or the draw pass refreshes the object*/
-    lv_draw_buf_set_palette(draw_buf, 0, lv_color_to_32(barcode->light_color, LV_OPA_COVER));
-    lv_draw_buf_set_palette(draw_buf, 1, lv_color_to_32(barcode->dark_color, LV_OPA_COVER));
+        /*Set the palette on the draw buffer, not via lv_canvas_set_palette(), to avoid an
+         *invalidation here - the caller or the draw pass refreshes the object*/
+        lv_draw_buf_set_palette(draw_buf, 0, lv_color_to_32(barcode->light_color, LV_OPA_COVER));
+        lv_draw_buf_set_palette(draw_buf, 1, lv_color_to_32(barcode->dark_color, LV_OPA_COVER));
+    }
 
     for(int32_t x = 0; x < bar_count; x++) {
         /*skip empty data*/
@@ -588,7 +623,7 @@ static lv_result_t barcode_fill(lv_obj_t * obj)
                 }
                 else {
                     uint8_t * dest = lv_draw_buf_goto_xy(draw_buf, 0, offset);
-                    lv_memset(dest, 0xFF, stride);
+                    lv_memset(dest, bar_byte, stride);
                 }
             }
         }

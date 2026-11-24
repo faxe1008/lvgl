@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 static const char * color_formats[] = {
-    "I1", /*7 I1*/
+    "L1_HTILED_MSB", /*7 L1*/
     "I2", /*8 I2*/
     "I4", /*9 I4*/
     "I8", /*10 I8*/
@@ -41,7 +41,7 @@ static const int stride_align[] = {
     64,
 };
 
-LV_IMAGE_DECLARE(test_I1_NONE_align1);
+LV_IMAGE_DECLARE(test_L1_HTILED_MSB_NONE_align1);
 LV_IMAGE_DECLARE(test_I2_NONE_align1);
 LV_IMAGE_DECLARE(test_I4_NONE_align1);
 LV_IMAGE_DECLARE(test_I8_NONE_align1);
@@ -54,7 +54,7 @@ LV_IMAGE_DECLARE(test_RGB565_NONE_align1);
 LV_IMAGE_DECLARE(test_RGB888_NONE_align1);
 LV_IMAGE_DECLARE(test_XRGB8888_NONE_align1);
 LV_IMAGE_DECLARE(test_ARGB8888_NONE_align1);
-LV_IMAGE_DECLARE(test_I1_RLE_align1);
+LV_IMAGE_DECLARE(test_L1_HTILED_MSB_RLE_align1);
 LV_IMAGE_DECLARE(test_I2_RLE_align1);
 LV_IMAGE_DECLARE(test_I4_RLE_align1);
 LV_IMAGE_DECLARE(test_I8_RLE_align1);
@@ -68,7 +68,7 @@ LV_IMAGE_DECLARE(test_RGB888_RLE_align1);
 LV_IMAGE_DECLARE(test_XRGB8888_RLE_align1);
 LV_IMAGE_DECLARE(test_ARGB8888_RLE_align1);
 
-LV_IMAGE_DECLARE(test_I1_LZ4_align1);
+LV_IMAGE_DECLARE(test_L1_HTILED_MSB_LZ4_align1);
 LV_IMAGE_DECLARE(test_I2_LZ4_align1);
 LV_IMAGE_DECLARE(test_I4_LZ4_align1);
 LV_IMAGE_DECLARE(test_I8_LZ4_align1);
@@ -82,7 +82,7 @@ LV_IMAGE_DECLARE(test_RGB888_LZ4_align1);
 LV_IMAGE_DECLARE(test_XRGB8888_LZ4_align1);
 LV_IMAGE_DECLARE(test_ARGB8888_LZ4_align1);
 
-LV_IMAGE_DECLARE(test_I1_NONE_align64);
+LV_IMAGE_DECLARE(test_L1_HTILED_MSB_NONE_align64);
 LV_IMAGE_DECLARE(test_I2_NONE_align64);
 LV_IMAGE_DECLARE(test_I4_NONE_align64);
 LV_IMAGE_DECLARE(test_I8_NONE_align64);
@@ -96,7 +96,7 @@ LV_IMAGE_DECLARE(test_RGB888_NONE_align64);
 LV_IMAGE_DECLARE(test_XRGB8888_NONE_align64);
 LV_IMAGE_DECLARE(test_ARGB8888_NONE_align64);
 
-LV_IMAGE_DECLARE(test_I1_RLE_align64);
+LV_IMAGE_DECLARE(test_L1_HTILED_MSB_RLE_align64);
 LV_IMAGE_DECLARE(test_I2_RLE_align64);
 LV_IMAGE_DECLARE(test_I4_RLE_align64);
 LV_IMAGE_DECLARE(test_I8_RLE_align64);
@@ -110,7 +110,7 @@ LV_IMAGE_DECLARE(test_RGB888_RLE_align64);
 LV_IMAGE_DECLARE(test_XRGB8888_RLE_align64);
 LV_IMAGE_DECLARE(test_ARGB8888_RLE_align64);
 
-LV_IMAGE_DECLARE(test_I1_LZ4_align64);
+LV_IMAGE_DECLARE(test_L1_HTILED_MSB_LZ4_align64);
 LV_IMAGE_DECLARE(test_I2_LZ4_align64);
 LV_IMAGE_DECLARE(test_I4_LZ4_align64);
 LV_IMAGE_DECLARE(test_I8_LZ4_align64);
@@ -127,7 +127,7 @@ LV_IMAGE_DECLARE(test_ARGB8888_LZ4_align64);
 static const void * c_array_images[sizeof(stride_align)][sizeof(compressions)][sizeof(color_formats)] = {
     {
         {
-            &test_I1_NONE_align1,
+            &test_L1_HTILED_MSB_NONE_align1,
             &test_I2_NONE_align1,
             &test_I4_NONE_align1,
             &test_I8_NONE_align1,
@@ -142,7 +142,7 @@ static const void * c_array_images[sizeof(stride_align)][sizeof(compressions)][s
             &test_ARGB8888_NONE_align1,
         },
         {
-            &test_I1_RLE_align1,
+            &test_L1_HTILED_MSB_RLE_align1,
             &test_I2_RLE_align1,
             &test_I4_RLE_align1,
             &test_I8_RLE_align1,
@@ -157,7 +157,7 @@ static const void * c_array_images[sizeof(stride_align)][sizeof(compressions)][s
             &test_ARGB8888_RLE_align1,
         },
         {
-            &test_I1_LZ4_align1,
+            &test_L1_HTILED_MSB_LZ4_align1,
             &test_I2_LZ4_align1,
             &test_I4_LZ4_align1,
             &test_I8_LZ4_align1,
@@ -174,7 +174,7 @@ static const void * c_array_images[sizeof(stride_align)][sizeof(compressions)][s
     },
     {
         {
-            &test_I1_NONE_align64,
+            &test_L1_HTILED_MSB_NONE_align64,
             &test_I2_NONE_align64,
             &test_I4_NONE_align64,
             &test_I8_NONE_align64,
@@ -189,7 +189,7 @@ static const void * c_array_images[sizeof(stride_align)][sizeof(compressions)][s
             &test_ARGB8888_NONE_align64,
         },
         {
-            &test_I1_RLE_align64,
+            &test_L1_HTILED_MSB_RLE_align64,
             &test_I2_RLE_align64,
             &test_I4_RLE_align64,
             &test_I8_RLE_align64,
@@ -204,7 +204,7 @@ static const void * c_array_images[sizeof(stride_align)][sizeof(compressions)][s
             &test_ARGB8888_RLE_align64,
         },
         {
-            &test_I1_LZ4_align64,
+            &test_L1_HTILED_MSB_LZ4_align64,
             &test_I2_LZ4_align64,
             &test_I4_LZ4_align64,
             &test_I8_LZ4_align64,

@@ -116,7 +116,7 @@ The following table shows the color format mapping:
 
 | Source Format | Target Format | Description |
 | --- | --- | --- |
-| `LV_COLOR_FORMAT_I1` | `LV_COLOR_FORMAT_I8` | VG-Lite index formats require endian + bit flipping, converted to I8 for simplicity |
+| `LV_COLOR_FORMAT_L1_HTILED_MSB` | `LV_COLOR_FORMAT_I8` | 1-bit luminance format, expanded to I8 for GPU compatibility |
 | `LV_COLOR_FORMAT_I2` | `LV_COLOR_FORMAT_I8` | Same as above |
 | `LV_COLOR_FORMAT_I4` | `LV_COLOR_FORMAT_I8` | Same as above |
 | `LV_COLOR_FORMAT_A1` | `LV_COLOR_FORMAT_A8` | Alpha format expanded to 8-bit |
@@ -132,7 +132,8 @@ The following table shows the color format mapping:
 - Formats not listed above will return `LV_COLOR_FORMAT_UNKNOWN` and be passed to other decoders in the chain.
 - The 24-bit format conversion (`RGB888`, `ARGB8565`) depends on GPU capability, queried via `vg_lite_query_feature(gcFEATURE_BIT_VG_24BIT)`.
   If the GPU supports 24-bit formats, the decoder will skip these formats and let the default binary decoder handle them.
-- Index formats (`I1`, `I2`, `I4`) maintain their palette but expand index values to 8-bit for GPU compatibility.
+- Index formats (`I2`, `I4`) maintain their palette but expand index values to 8-bit for GPU compatibility.
+- `L1` is a luminance format (no palette); each bit encodes a luminance (0 or 255) and the pixels are expanded to `I8`.
 - Alpha formats (`A1`, `A2`) are linearly scaled to 8-bit (e.g., A1: 0→0, 1→255; A2: 0→0, 1→85, 2→170, 3→255).
 - **Compressed formats are not supported.** Images with `LV_IMAGE_FLAGS_COMPRESSED` flag will be rejected by this decoder
   and passed to other decoders that support decompression.

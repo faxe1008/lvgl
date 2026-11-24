@@ -38,6 +38,14 @@ typedef lv_rotation_t lv_display_rotation_t;
 typedef lv_draw_dsc_t lv_draw_dsc_base_t;
 
 typedef lv_draw_dsc_type_t lv_draw_task_type_t;
+
+/* `I1` (1bpp luminance) was renamed to `L1`: it is not an indexed format, it represents a
+ * luminance. The legacy layout (8 pixels per byte, row-wise, MSB first) is now explicit. */
+#define LV_COLOR_FORMAT_I1            LV_COLOR_FORMAT_L1_HTILED_MSB
+#define LV_COLOR_FORMAT_L1            LV_COLOR_FORMAT_L1_HTILED_MSB
+#define lv_draw_i1_to_argb8888        lv_draw_l1_to_argb8888
+#define lv_draw_i1_invert             lv_draw_l1_invert
+#define lv_draw_i1_convert_to_vtiled  lv_draw_l1_convert_to_vtiled
 #define LV_DRAW_TASK_TYPE_NONE           LV_DRAW_DSC_TYPE_NONE
 #define LV_DRAW_TASK_TYPE_FILL           LV_DRAW_DSC_TYPE_FILL
 #define LV_DRAW_TASK_TYPE_BORDER         LV_DRAW_DSC_TYPE_BORDER

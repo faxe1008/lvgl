@@ -303,7 +303,7 @@ lv_result_t lv_inv_area(lv_display_t * disp, const lv_area_t * area_p)
     suc = lv_area_intersect(&com_area, area_p, &scr_area);
     if(suc == false)  return LV_RESULT_INVALID; /*Out of the screen*/
 
-    if(disp->color_format == LV_COLOR_FORMAT_I1) {
+    if(disp->color_format == LV_COLOR_FORMAT_L1_HTILED_MSB) {
         /*Make sure that the X coordinates start and end on byte boundary.
          *E.g. convert 11;27 to 8;31*/
         com_area.x1 &= ~0x7; /*Round down: Nx8*/

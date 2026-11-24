@@ -15,11 +15,11 @@ void tearDown(void)
     lv_display_set_color_format(lv_display_get_default(), LV_COLOR_FORMAT_XRGB8888);
 }
 
-void test_render_to_i1(void)
+void test_render_to_l1(void)
 {
     /*NanoVG reads back the FBO as 32bpp BGRA, so non-XRGB8888 targets don't apply*/
 #if LV_BIN_DECODER_RAM_LOAD && LV_USE_DRAW_VG_LITE == 0 && LV_USE_DRAW_NANOVG == 0
-    lv_display_set_color_format(lv_display_get_default(), LV_COLOR_FORMAT_I1);
+    lv_display_set_color_format(lv_display_get_default(), LV_COLOR_FORMAT_L1_HTILED_MSB);
 
     lv_opa_t opa_values[2] = {0xff, 0xc0};
     uint32_t opa;
@@ -29,7 +29,7 @@ void test_render_to_i1(void)
             lv_demo_render(i, opa_values[opa]);
 
             char buf[128];
-            lv_snprintf(buf, sizeof(buf), "draw/render/i1/demo_render_%s_opa_%d.png",
+            lv_snprintf(buf, sizeof(buf), "draw/render/l1/demo_render_%s_opa_%d.png",
                         lv_demo_render_get_scene_name(i), opa_values[opa]);
             TEST_ASSERT_EQUAL_SCREENSHOT(buf);
         }

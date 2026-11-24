@@ -14,7 +14,7 @@ All of the below format names are used in code by prefixing them with
 
 | Format | BPP | Supported by offline converter | Description |
 | --- | --- | --- | --- |
-| I1 [^1] | 1 | Yes | Indexed with 2-color palette |
+| L1_HTILED_MSB [^1] | 1 | Yes | Luminance: 1 bit per pixel (0 or 255), 8 pixels per byte, horizontally, MSB first |
 | I2 [^1] | 2 | Yes | Indexed with 4-color palette |
 | I4 [^1] | 4 | Yes | Indexed with 16-color palette |
 | I8 [^1] | 8 | Yes | Indexed with 256-color palette |
@@ -32,7 +32,7 @@ All of the below format names are used in code by prefixing them with
 | RAW [^2] | ? | n/a | See [Custom Image Formats](/main-modules/images/decoders) |
 | RAW_ALPHA [^2] | ? | n/a | See [Custom Image Formats](/main-modules/images/decoders) |
 
-[^1]: I1, I2, I4 and I8 indexed formats require <ApiLink name="LV_DRAW_SW_SUPPORT_ARGB8888" /> to be configured to `1` in your `lv_conf.h` file.  Palette colors are always `ARGB8888`.
+[^1]: The `L1` and the `I2`, `I4` and `I8` indexed formats require <ApiLink name="LV_DRAW_SW_SUPPORT_ARGB8888" /> to be configured to `1` in your `lv_conf.h` file.  Palette colors are always `ARGB8888` (`L1` has no palette: each bit directly encodes a luminance).
 
 [^2]: Custom formats can be supported by specifying one of the RAW color formats and using an external [image decoder](/main-modules/images/decoders) to decode it. See [Image Decoders](/main-modules/images/decoders).
 
@@ -50,7 +50,7 @@ All of the below format names are used in code by prefixing them with
 
     | `LV_COLOR_FORMAT_DEFAULT` | `..._NATIVE` | `..._NATIVE_WITH_ALPHA` |
     | --- | --- | --- |
-    | `I1` | `I1` | `I1` (no alpha-capable 1-bit format) |
+    | `L1_HTILED_MSB` | `L1_HTILED_MSB` | `L1_HTILED_MSB` (no alpha-capable 1-bit format) |
     | `L8` | `L8` | `AL88` |
     | `RGB565` | `RGB565` | `RGB565A8` |
     | `RGB565_SWAPPED` | `RGB565_SWAPPED` | `RGB565A8` |
