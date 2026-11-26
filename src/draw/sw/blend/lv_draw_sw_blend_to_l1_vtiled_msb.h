@@ -1,10 +1,10 @@
 /**
- * @file lv_draw_sw_blend_to_l1.h
+ * @file lv_draw_sw_blend_to_l1_vtiled_msb.h
  *
  */
 
-#ifndef LV_DRAW_SW_BLEND_TO_L1_H
-#define LV_DRAW_SW_BLEND_TO_L1_H
+#ifndef LV_DRAW_SW_BLEND_TO_L1_VTILED_MSB_H
+#define LV_DRAW_SW_BLEND_TO_L1_VTILED_MSB_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,9 +28,13 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 
-void /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_sw_blend_color_to_l1(lv_draw_sw_blend_fill_dsc_t * dsc);
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_MSB
 
-void /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_sw_blend_image_to_l1(lv_draw_sw_blend_image_dsc_t * dsc);
+void /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_sw_blend_color_to_l1_vtiled_msb(lv_draw_sw_blend_fill_dsc_t * dsc);
+
+void /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_sw_blend_image_to_l1_vtiled_msb(lv_draw_sw_blend_image_dsc_t * dsc);
+
+#endif /*LV_DRAW_SW_SUPPORT_L1_VTILED_MSB*/
 
 /**********************
  *      MACROS
@@ -42,4 +46,4 @@ void /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_sw_blend_image_to_l1(lv_draw_sw_blend_i
 } /*extern "C"*/
 #endif
 
-#endif /*LV_DRAW_SW_BLEND_TO_L1_H*/
+#endif /*LV_DRAW_SW_BLEND_TO_L1_VTILED_MSB_H*/

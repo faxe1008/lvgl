@@ -1219,7 +1219,7 @@ uint32_t lv_display_get_invalidated_draw_buf_size(lv_display_t * disp, uint32_t 
 
     lv_color_format_t cf = lv_display_get_color_format(disp);
     uint32_t stride = lv_draw_buf_width_to_stride(width, cf);
-    uint32_t buf_size = stride * height;
+    uint32_t buf_size = stride * lv_draw_buf_stride_rows(height, cf);
 
     LV_ASSERT(disp->buf_1 == NULL || disp->buf_1->data_size >= buf_size);
     LV_ASSERT(disp->buf_2 == NULL || disp->buf_2->data_size >= buf_size);

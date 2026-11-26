@@ -146,8 +146,14 @@ void lv_canvas_set_px(lv_obj_t * obj, int32_t x, int32_t y, lv_color_t color, lv
         c_int &= mask;
         *data = (*data & ~(mask << shift)) | (c_int << shift);
     }
-    else if(cf == LV_COLOR_FORMAT_L1_HTILED_MSB) {
-        uint8_t bit = 7 - (x & 0x7);
+    else if(LV_COLOR_FORMAT_IS_L1(cf)) {
+        uint8_t bit;
+        if(LV_COLOR_FORMAT_IS_L1_VTILED(cf)) {
+            bit = LV_COLOR_FORMAT_IS_L1_LSB(cf) ? (uint8_t)(y & 0x7) : (uint8_t)(7 - (y & 0x7));
+        }
+        else {
+            bit = LV_COLOR_FORMAT_IS_L1_LSB(cf) ? (uint8_t)(x & 0x7) : (uint8_t)(7 - (x & 0x7));
+        }
         uint8_t c = color.blue & 0x1;
         *data = (*data & ~(1u << bit)) | (c << bit);
     }

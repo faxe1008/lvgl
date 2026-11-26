@@ -147,6 +147,8 @@ void test_draw_buf_size_alignment(void)
         { 10, 10, LV_COLOR_FORMAT_ARGB8888, 40 },
         /* Stride auto-computed (0) path */
         { 7, 5, LV_COLOR_FORMAT_RGB565, 0 },
+        /* Vertically tiled L1: one byte per column, 8 pixel rows per byte: 9*2 = 18 */
+        { 9, 13, LV_COLOR_FORMAT_L1_VTILED_MSB, 9 },
     };
 
     for(unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
@@ -161,7 +163,7 @@ void test_draw_buf_size_alignment(void)
         /* Recompute the stride the same way `_calculate_draw_buf_size` would
          * if the caller passed 0, so we can derive the expected raw size. */
         uint32_t effective_stride = stride ? stride : lv_draw_buf_width_to_stride(w, cf);
-        uint32_t raw_size = effective_stride * h;
+        uint32_t raw_size = effective_stride * lv_draw_buf_stride_rows(h, cf);
         if(cf == LV_COLOR_FORMAT_RGB565A8) {
             raw_size += (effective_stride / 2) * h;
         }
@@ -189,6 +191,14 @@ void test_draw_buf_xy_access(void)
 
     uint8_t * ret = lv_draw_buf_goto_xy(&draw_buf, 50, 50);
     TEST_ASSERT_NOT_NULL(ret);
+
+    /*Vertically tiled L1: pixel (x, y) is byte `x` of the `y / 8`-th chunk,
+      where each chunk is `stride` bytes.*/
+    LV_DRAW_BUF_DEFINE_STATIC(draw_buf_l1, 100, 100, LV_COLOR_FORMAT_L1_VTILED_MSB);
+    LV_DRAW_BUF_INIT_STATIC(draw_buf_l1);
+
+    TEST_ASSERT_EQUAL_PTR(draw_buf_l1.data + draw_buf_l1.header.stride * 6 + 50,
+                          lv_draw_buf_goto_xy(&draw_buf_l1, 50, 50));
 }
 
 

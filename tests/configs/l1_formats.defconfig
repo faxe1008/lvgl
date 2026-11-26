@@ -1,0 +1,5 @@
+# Enable the three L1 layouts that are off by default, on top of the default
+# htiling MSB one, so that all four render paths are covered.
+CONFIG_LV_DRAW_SW_SUPPORT_L1_HTILED_LSB=y
+CONFIG_LV_DRAW_SW_SUPPORT_L1_VTILED_MSB=y
+CONFIG_LV_DRAW_SW_SUPPORT_L1_VTILED_LSB=y

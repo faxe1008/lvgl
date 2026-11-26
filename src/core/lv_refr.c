@@ -40,6 +40,7 @@ static void refr_area(const lv_area_t * area_p, int32_t y_offset);
 static void refr_configured_layer(lv_layer_t * layer);
 static void refr_obj_and_children(lv_layer_t * layer, lv_obj_t * top_obj);
 static uint32_t get_max_row(lv_display_t * disp, int32_t area_w, int32_t area_h);
+static void round_area_l1(lv_display_t * disp, lv_area_t * area);
 static void draw_buf_flush(lv_display_t * disp);
 static void call_flush_cb(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
 static void wait_for_flushing(lv_display_t * disp);
@@ -303,12 +304,7 @@ lv_result_t lv_inv_area(lv_display_t * disp, const lv_area_t * area_p)
     suc = lv_area_intersect(&com_area, area_p, &scr_area);
     if(suc == false)  return LV_RESULT_INVALID; /*Out of the screen*/
 
-    if(disp->color_format == LV_COLOR_FORMAT_L1_HTILED_MSB) {
-        /*Make sure that the X coordinates start and end on byte boundary.
-         *E.g. convert 11;27 to 8;31*/
-        com_area.x1 &= ~0x7; /*Round down: Nx8*/
-        com_area.x2 |= 0x7;    /*Round up: Nx8 - 1*/
-    }
+    round_area_l1(disp, &com_area);
 
     /*If there were at least 1 invalid area in full refresh mode, redraw the whole screen*/
     if(disp->render_mode == LV_DISPLAY_RENDER_MODE_FULL) {
@@ -1347,9 +1343,27 @@ static bool refr_check_obj_clip_overflow(lv_layer_t * layer, lv_obj_t * obj)
 
 #endif /* LV_DRAW_TRANSFORM_USE_MATRIX */
 
+static void round_area_l1(lv_display_t * disp, lv_area_t * area)
+{
+    if(!LV_COLOR_FORMAT_IS_L1(disp->color_format)) return;
+
+    if(LV_COLOR_FORMAT_IS_L1_VTILED(disp->color_format)) {
+        /*Make sure that the Y coordinates start and end on byte boundary.*/
+        area->y1 &= ~0x7; /*Round down: Nx8*/
+        area->y2 |= 0x7;  /*Round up: Nx8 - 1*/
+    }
+    else {
+        /*Make sure that the X coordinates start and end on byte boundary.
+         *E.g. convert 11;27 to 8;31*/
+        area->x1 &= ~0x7; /*Round down: Nx8*/
+        area->x2 |= 0x7;   /*Round up: Nx8 - 1*/
+    }
+}
+
 static uint32_t get_max_row(lv_display_t * disp, int32_t area_w, int32_t area_h)
 {
     lv_color_format_t cf = disp->color_format;
+    bool vtiled_l1 = LV_COLOR_FORMAT_IS_L1_VTILED(cf);
     uint32_t stride = lv_draw_buf_width_to_stride(area_w, cf);
     uint32_t overhead = LV_COLOR_INDEXED_PALETTE_SIZE(cf) * sizeof(lv_color32_t);
 
@@ -1358,7 +1372,10 @@ static uint32_t get_max_row(lv_display_t * disp, int32_t area_w, int32_t area_h)
         return 0;
     }
 
-    int32_t max_row = (uint32_t)(disp->buf_act->data_size - overhead) / stride;
+    /* For vertically tiled mono buffers each `stride` sized chunk covers 8 pixel rows
+     * instead of 1, so the chunk count needs scaling back up to a pixel row count. */
+    uint32_t max_chunks = (uint32_t)(disp->buf_act->data_size - overhead) / stride;
+    int32_t max_row = vtiled_l1 ? (int32_t)(max_chunks * 8) : (int32_t)max_chunks;
 
     if(max_row > area_h) max_row = area_h;
 
@@ -1371,6 +1388,7 @@ static uint32_t get_max_row(lv_display_t * disp, int32_t area_w, int32_t area_h)
     int32_t h_tmp = max_row;
     do {
         tmp.y2 = h_tmp - 1;
+        round_area_l1(disp_refr, &tmp);
         lv_display_send_event(disp_refr, LV_EVENT_INVALIDATE_AREA, &tmp);
 
         /*If this height fits into `max_row` then fine*/

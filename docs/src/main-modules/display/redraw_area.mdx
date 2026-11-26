@@ -7,7 +7,9 @@ Some display controllers have specific requirements for the window area where th
 rendered image can be sent (e.g., `x1` must be even, and `x2` must be odd).
 
 In the case of monochrome displays, `x1` must be `Nx8`, and `x2` must be `Nx8 - 1`.
-(If the display uses `LV_COLOR_FORMAT_L1_HTILED_MSB`, LVGL automatically applies this rounding.
+(If the display uses one of the `LV_COLOR_FORMAT_L1_*` formats, LVGL automatically
+applies this rounding: the horizontally tiled formats round the `x` coordinates,
+the vertically tiled formats round the `y` coordinates.
 See [Monochrome Displays](/main-modules/display/color_format).)
 
 The size of the invalidated (redrawn) area can be controlled as follows:

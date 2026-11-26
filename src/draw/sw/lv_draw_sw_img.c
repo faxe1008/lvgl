@@ -166,6 +166,12 @@ void lv_draw_sw_image_core(lv_layer_t * layer, const lv_draw_image_dsc_t * draw_
     uint32_t img_stride = decoded->header.stride;
     lv_color_format_t cf = decoded->header.cf;
 
+    /*Only the legacy htiling MSB layout is supported as a blend source*/
+    if(LV_COLOR_FORMAT_IS_L1(cf) && cf != LV_COLOR_FORMAT_L1_HTILED_MSB) {
+        LV_LOG_WARN("L1 source color format 0x%02X is not supported", cf);
+        return;
+    }
+
     lv_draw_sw_blend_dsc_t blend_dsc;
     lv_memzero(&blend_dsc, sizeof(lv_draw_sw_blend_dsc_t));
     blend_dsc.opa = draw_dsc->opa;

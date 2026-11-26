@@ -15,11 +15,12 @@ void tearDown(void)
     lv_display_set_color_format(lv_display_get_default(), LV_COLOR_FORMAT_XRGB8888);
 }
 
-void test_render_to_l1(void)
+/*Render all demo scenes into the given L1 layout and compare them with the
+  reference images. All four L1 layouts hold the same logical pixels, so they
+  all check out against the same reference files.*/
+static void render_and_compare_l1(lv_color_format_t cf)
 {
-    /*NanoVG reads back the FBO as 32bpp BGRA, so non-XRGB8888 targets don't apply*/
-#if LV_BIN_DECODER_RAM_LOAD && LV_USE_DRAW_VG_LITE == 0 && LV_USE_DRAW_NANOVG == 0
-    lv_display_set_color_format(lv_display_get_default(), LV_COLOR_FORMAT_L1_HTILED_MSB);
+    lv_display_set_color_format(lv_display_get_default(), cf);
 
     lv_opa_t opa_values[2] = {0xff, 0xc0};
     uint32_t opa;
@@ -34,6 +35,24 @@ void test_render_to_l1(void)
             TEST_ASSERT_EQUAL_SCREENSHOT(buf);
         }
     }
+}
+
+void test_render_to_l1(void)
+{
+    /*NanoVG reads back the FBO as 32bpp BGRA, so non-XRGB8888 targets don't apply*/
+#if LV_BIN_DECODER_RAM_LOAD && LV_USE_DRAW_VG_LITE == 0 && LV_USE_DRAW_NANOVG == 0
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_MSB
+    render_and_compare_l1(LV_COLOR_FORMAT_L1_HTILED_MSB);
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_LSB
+    render_and_compare_l1(LV_COLOR_FORMAT_L1_HTILED_LSB);
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_MSB
+    render_and_compare_l1(LV_COLOR_FORMAT_L1_VTILED_MSB);
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_LSB
+    render_and_compare_l1(LV_COLOR_FORMAT_L1_VTILED_LSB);
+#endif
 #else
     /*Without LV_BIN_DECODER_RAM_LOAD can't test rotated images*/
     TEST_PASS();

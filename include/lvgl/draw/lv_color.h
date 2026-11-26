@@ -64,6 +64,9 @@ enum _lv_opacity_level_t {
  */
 #define LV_COLOR_FORMAT_GET_BPP(cf) (       \
                                             (cf) == LV_COLOR_FORMAT_L1_HTILED_MSB ? 1 :        \
+                                            (cf) == LV_COLOR_FORMAT_L1_HTILED_LSB ? 1 :        \
+                                            (cf) == LV_COLOR_FORMAT_L1_VTILED_MSB ? 1 :        \
+                                            (cf) == LV_COLOR_FORMAT_L1_VTILED_LSB ? 1 :        \
                                             (cf) == LV_COLOR_FORMAT_A1 ? 1 :        \
                                             (cf) == LV_COLOR_FORMAT_I2 ? 2 :        \
                                             (cf) == LV_COLOR_FORMAT_A2 ? 2 :        \
@@ -146,6 +149,15 @@ typedef enum {
     LV_COLOR_FORMAT_L8                = 0x06,
     LV_COLOR_FORMAT_L1_HTILED_MSB     = 0x07,   /**< 1 bit per pixel luminance, 8 pixels per byte horizontally (row-wise),
                                                   *  most significant bit first. Legacy name: `LV_COLOR_FORMAT_I1`. */
+    LV_COLOR_FORMAT_L1_HTILED_LSB     = 0x19,   /**< 1 bit per pixel luminance, 8 pixels per byte horizontally (row-wise),
+                                                  *  least significant bit first. Destination-only: images in this
+                                                  *  format are not supported as a blend source. */
+    LV_COLOR_FORMAT_L1_VTILED_MSB     = 0x1C,   /**< 1 bit per pixel luminance, 8 pixels per byte vertically (column-wise),
+                                                  *  most significant bit first. Destination-only: images in this
+                                                  *  format are not supported as a blend source. */
+    LV_COLOR_FORMAT_L1_VTILED_LSB     = 0x1D,   /**< 1 bit per pixel luminance, 8 pixels per byte vertically (column-wise),
+                                                  *  least significant bit first. Destination-only: images in this
+                                                  *  format are not supported as a blend source. */
     LV_COLOR_FORMAT_I2                = 0x08,
     LV_COLOR_FORMAT_I4                = 0x09,
     LV_COLOR_FORMAT_I8                = 0x0A,
@@ -207,8 +219,24 @@ typedef enum {
 /**
  * L1 (1 bit per pixel luminance) color formats. L1 is not an indexed format: the bit
  * directly encodes the luminance (0 or 255) and buffers carry no palette header.
+ *
+ * The four variants differ in how the 8 pixels per byte are tiled:
+ * - htiling: 8 horizontally adjacent pixels share a byte, one byte row per pixel row;
+ * - vtiling: 8 vertically adjacent pixels of one column share a byte, one byte per column.
+ * MSB/LSB selects the bit order within the byte.
  */
-#define LV_COLOR_FORMAT_IS_L1(cf) ((cf) == LV_COLOR_FORMAT_L1_HTILED_MSB)
+#define LV_COLOR_FORMAT_IS_L1(cf) ((cf) == LV_COLOR_FORMAT_L1_HTILED_MSB || \
+                                   (cf) == LV_COLOR_FORMAT_L1_HTILED_LSB || \
+                                   (cf) == LV_COLOR_FORMAT_L1_VTILED_MSB || \
+                                   (cf) == LV_COLOR_FORMAT_L1_VTILED_LSB)
+#define LV_COLOR_FORMAT_IS_L1_HTILED(cf) ((cf) == LV_COLOR_FORMAT_L1_HTILED_MSB || \
+                                          (cf) == LV_COLOR_FORMAT_L1_HTILED_LSB)
+#define LV_COLOR_FORMAT_IS_L1_VTILED(cf) ((cf) == LV_COLOR_FORMAT_L1_VTILED_MSB || \
+                                          (cf) == LV_COLOR_FORMAT_L1_VTILED_LSB)
+#define LV_COLOR_FORMAT_IS_L1_MSB(cf) ((cf) == LV_COLOR_FORMAT_L1_HTILED_MSB || \
+                                       (cf) == LV_COLOR_FORMAT_L1_VTILED_MSB)
+#define LV_COLOR_FORMAT_IS_L1_LSB(cf) ((cf) == LV_COLOR_FORMAT_L1_HTILED_LSB || \
+                                       (cf) == LV_COLOR_FORMAT_L1_VTILED_LSB)
 #define LV_COLOR_INDEXED_PALETTE_SIZE(cf) ((cf) == LV_COLOR_FORMAT_I2 ? 4 :\
                                            (cf) == LV_COLOR_FORMAT_I4 ? 16 :\
                                            (cf) == LV_COLOR_FORMAT_I8 ? 256 : 0)

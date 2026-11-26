@@ -21,6 +21,9 @@ void test_color_format_get_bpp(void)
         uint8_t expected_bpp;
     } test_cases[] = {
         {LV_COLOR_FORMAT_L1_HTILED_MSB, 1},
+        {LV_COLOR_FORMAT_L1_HTILED_LSB, 1},
+        {LV_COLOR_FORMAT_L1_VTILED_MSB, 1},
+        {LV_COLOR_FORMAT_L1_VTILED_LSB, 1},
         {LV_COLOR_FORMAT_A1, 1},
         {LV_COLOR_FORMAT_I2, 2},
         {LV_COLOR_FORMAT_A2, 2},
@@ -59,6 +62,9 @@ void test_color_format_has_alpha(void)
         {LV_COLOR_FORMAT_A4, true},
         {LV_COLOR_FORMAT_A8, true},
         {LV_COLOR_FORMAT_L1_HTILED_MSB, true},
+        {LV_COLOR_FORMAT_L1_HTILED_LSB, true},
+        {LV_COLOR_FORMAT_L1_VTILED_MSB, true},
+        {LV_COLOR_FORMAT_L1_VTILED_LSB, true},
         {LV_COLOR_FORMAT_I2, true},
         {LV_COLOR_FORMAT_I4, true},
         {LV_COLOR_FORMAT_I8, true},

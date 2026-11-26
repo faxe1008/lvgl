@@ -34,11 +34,20 @@ LV_EXPORT_CONST_INT(LV_STRIDE_AUTO);
  */
 
 #define LV_DRAW_BUF_STRIDE(w, cf) \
-    LV_ROUND_UP(((w) * LV_COLOR_FORMAT_GET_BPP(cf) + 7) / 8, LV_DRAW_BUF_STRIDE_ALIGN)
+    (LV_COLOR_FORMAT_IS_L1_VTILED(cf) ? \
+     LV_ROUND_UP((w), LV_DRAW_BUF_STRIDE_ALIGN) : \
+     LV_ROUND_UP(((w) * LV_COLOR_FORMAT_GET_BPP(cf) + 7) / 8, LV_DRAW_BUF_STRIDE_ALIGN))
+
+/**
+ * The number of buffer rows a `h` pixel rows tall area occupies.
+ * For vtiling 1 bpp formats each buffer row packs 8 vertically stacked pixels of
+ * one column, so `ceil(h / 8)` rows are needed instead of `h`.
+ */
+#define LV_DRAW_BUF_STRIDE_ROWS(h, cf) (LV_COLOR_FORMAT_IS_L1_VTILED(cf) ? (((h) + 7) / 8) : (h))
 
 /** Allocate a slightly larger buffer, so we can adjust the start address to meet alignment */
 #define LV_DRAW_BUF_SIZE(w, h, cf) \
-    (LV_DRAW_BUF_STRIDE(w, cf) * (h) + LV_DRAW_BUF_ALIGN + \
+    (LV_DRAW_BUF_STRIDE(w, cf) * LV_DRAW_BUF_STRIDE_ROWS(h, cf) + LV_DRAW_BUF_ALIGN + \
      LV_COLOR_INDEXED_PALETTE_SIZE(cf) * sizeof(lv_color32_t))
 
 /**
@@ -191,6 +200,19 @@ uint32_t lv_draw_buf_width_to_stride(uint32_t w, lv_color_format_t color_format)
  */
 uint32_t lv_draw_buf_width_to_stride_ex(const lv_draw_buf_handlers_t * handlers, uint32_t w,
                                         lv_color_format_t color_format);
+
+/**
+ * Get the number of buffer rows (stride sized chunks) needed to store `h` pixel rows
+ * in the given color format.
+ *
+ * For vtiling 1 bpp formats (LV_COLOR_FORMAT_L1_VTILED_MSB/LSB) each buffer row packs
+ * 8 vertically stacked pixels of one column, so `ceil(h / 8)` rows are needed instead
+ * of `h`. All other formats need one buffer row per pixel row.
+ * @param h                 the height in pixel rows
+ * @param color_format      the color format
+ * @return                  the number of buffer rows
+ */
+uint32_t lv_draw_buf_stride_rows(uint32_t h, lv_color_format_t color_format);
 
 /**
  * Clear an area on the buffer

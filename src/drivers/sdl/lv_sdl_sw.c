@@ -139,7 +139,7 @@ static lv_result_t resize_display(lv_display_t * display)
     /*In some cases SDL stride might be different than LVGL render stride, like in L1 format.
     SDL still uses ARGB8888 as the color format, but LVGL renders in L1, thus causing a mismatch
     This ensures correct stride for SDL buffers in this case.*/
-    if(cf == LV_COLOR_FORMAT_L1_HTILED_MSB) {
+    if(LV_COLOR_FORMAT_IS_L1(cf)) {
         cf = LV_COLOR_FORMAT_ARGB8888;
     }
 
@@ -260,6 +260,29 @@ static void sdl_draw_buf_free(void * ptr)
 #endif /* _WIN32 */
 }
 
+/**
+ * Convert an L1 area to ARGB8888, for the L1 layouts without a dedicated converter.
+ * The area is assumed to be aligned to the layout's tiling boundary, as guaranteed
+ * by the refresh area rounding for L1 displays.
+ */
+static void lv_sdl_sw_l1_to_argb8888(const uint8_t * l1_map, uint32_t * argb_map, uint32_t width, uint32_t height,
+                                     uint32_t l1_stride, lv_color_format_t cf)
+{
+    const bool vtiled = LV_COLOR_FORMAT_IS_L1_VTILED(cf);
+    const bool lsb = LV_COLOR_FORMAT_IS_L1_LSB(cf);
+
+    for(uint32_t y = 0; y < height; y++) {
+        const uint8_t * row = l1_map + (vtiled ? (l1_stride * (y >> 3)) : (l1_stride * y));
+        for(uint32_t x = 0; x < width; x++) {
+            const uint32_t idx = vtiled ? x : (x >> 3);
+            const uint32_t bit_pos = vtiled ? (y & 7) : (x & 7);
+            const uint32_t shift = lsb ? bit_pos : (7 - bit_pos);
+            const uint32_t bit = (row[idx] >> shift) & 1U;
+            argb_map[y * width + x] = bit ? 0xFFFFFFFFu : 0xFF000000u;
+        }
+    }
+}
+
 static void flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * px_map)
 {
     lv_color_format_t cf = lv_display_get_color_format(display);
@@ -274,7 +297,8 @@ static void flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * p
         }
         /*Update values in a special OLED L1 --> ARGB8888 case
           We render everything in L1, but display it in ARGB8888*/
-        if(cf == LV_COLOR_FORMAT_L1_HTILED_MSB) {
+        if(LV_COLOR_FORMAT_IS_L1(cf)) {
+            lv_color_format_t l1_cf = cf;
             /*L1 uses 1 bit wide pixels, ARGB8888 uses 4 byte wide pixels*/
             cf = LV_COLOR_FORMAT_ARGB8888;
             uint32_t width = lv_area_get_width(area);
@@ -286,9 +310,15 @@ static void flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * p
                 lv_display_flush_ready(display);
                 return;
             }
-            const uint32_t l1_stride = lv_draw_buf_width_to_stride(width, LV_COLOR_FORMAT_L1_HTILED_MSB);
-            const uint32_t argb8888_stride = lv_draw_buf_width_to_stride(width, LV_COLOR_FORMAT_ARGB8888);
-            lv_draw_l1_to_argb8888(px_map, argb_px_map, width, height, l1_stride, argb8888_stride, 0xFF000000u, 0xFFFFFFFFu);
+            const uint32_t l1_stride = lv_draw_buf_width_to_stride(width, l1_cf);
+            if(l1_cf == LV_COLOR_FORMAT_L1_HTILED_MSB) {
+                const uint32_t argb8888_stride = lv_draw_buf_width_to_stride(width, LV_COLOR_FORMAT_ARGB8888);
+                lv_draw_l1_to_argb8888(px_map, argb_px_map, width, height, l1_stride, argb8888_stride,
+                                       0xFF000000u, 0xFFFFFFFFu);
+            }
+            else {
+                lv_sdl_sw_l1_to_argb8888(px_map, argb_px_map, width, height, l1_stride, l1_cf);
+            }
             px_map = (uint8_t *)argb_px_map;
         }
 
@@ -334,7 +364,7 @@ static lv_result_t window_update(lv_display_t * display)
 {
     lv_color_format_t cf = lv_display_get_color_format(display);
     lv_sdl_sw_display_data_t * ddata = lv_sdl_backend_get_display_data(display);
-    if(cf == LV_COLOR_FORMAT_L1_HTILED_MSB) {
+    if(LV_COLOR_FORMAT_IS_L1(cf)) {
         cf = LV_COLOR_FORMAT_ARGB8888;
     }
     uint32_t stride = lv_draw_buf_width_to_stride(display->hor_res, cf);

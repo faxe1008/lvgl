@@ -140,6 +140,36 @@ void test_get_invalidated_drawbuf_size_l1_partial(void)
     exec_invalidated_drawbuf_size_test(&test_set);
 }
 
+void test_get_invalidated_drawbuf_size_l1_vtiled_full(void)
+{
+    struct display_area_test_set test_set =  {
+        .width = 180,
+        .height = 90,
+        .color_format = LV_COLOR_FORMAT_L1_VTILED_MSB,
+        .render_mode = LV_DISPLAY_RENDER_MODE_FULL,
+        .invalidated_width = 180,
+        .invalidated_height = 90,
+        .expected_buf0_size = lv_draw_buf_width_to_stride(180, LV_COLOR_FORMAT_L1_VTILED_MSB) *
+                              lv_draw_buf_stride_rows(90, LV_COLOR_FORMAT_L1_VTILED_MSB),
+    };
+    exec_invalidated_drawbuf_size_test(&test_set);
+}
+
+void test_get_invalidated_drawbuf_size_l1_vtiled_partial(void)
+{
+    struct display_area_test_set test_set = {
+        .width = 180,
+        .height = 90,
+        .color_format = LV_COLOR_FORMAT_L1_VTILED_LSB,
+        .render_mode = LV_DISPLAY_RENDER_MODE_PARTIAL,
+        .invalidated_width = 180,
+        .invalidated_height = 10,
+        .expected_buf0_size = lv_draw_buf_width_to_stride(180, LV_COLOR_FORMAT_L1_VTILED_LSB) *
+                              lv_draw_buf_stride_rows(10, LV_COLOR_FORMAT_L1_VTILED_LSB),
+    };
+    exec_invalidated_drawbuf_size_test(&test_set);
+}
+
 #if LV_DRAW_TRANSFORM_USE_MATRIX
 static void test_matrix_transform_area(lv_display_t * display)
 {

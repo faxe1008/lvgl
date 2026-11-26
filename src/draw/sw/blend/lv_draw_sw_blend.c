@@ -33,8 +33,17 @@
 #if LV_DRAW_SW_SUPPORT_RGB888 || LV_DRAW_SW_SUPPORT_XRGB8888
     #include "lv_draw_sw_blend_to_rgb888.h"
 #endif
-#if LV_DRAW_SW_SUPPORT_L1
-    #include "lv_draw_sw_blend_to_l1.h"
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_MSB
+    #include "lv_draw_sw_blend_to_l1_htiled_msb.h"
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_LSB
+    #include "lv_draw_sw_blend_to_l1_htiled_lsb.h"
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_MSB
+    #include "lv_draw_sw_blend_to_l1_vtiled_msb.h"
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_LSB
+    #include "lv_draw_sw_blend_to_l1_vtiled_lsb.h"
 #endif
 #if LV_USE_DRAW_SW
 
@@ -222,12 +231,30 @@ static inline void LV_ATTRIBUTE_FAST_MEM lv_draw_sw_blend_color(lv_color_format_
             lv_draw_sw_blend_color_to_al88(fill_dsc);
             break;
 #endif
-#if LV_DRAW_SW_SUPPORT_L1
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_MSB
         case LV_COLOR_FORMAT_L1_HTILED_MSB:
-            lv_draw_sw_blend_color_to_l1(fill_dsc);
+            lv_draw_sw_blend_color_to_l1_htiled_msb(fill_dsc);
+            break;
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_LSB
+        case LV_COLOR_FORMAT_L1_HTILED_LSB:
+            lv_draw_sw_blend_color_to_l1_htiled_lsb(fill_dsc);
+            break;
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_MSB
+        case LV_COLOR_FORMAT_L1_VTILED_MSB:
+            lv_draw_sw_blend_color_to_l1_vtiled_msb(fill_dsc);
+            break;
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_LSB
+        case LV_COLOR_FORMAT_L1_VTILED_LSB:
+            lv_draw_sw_blend_color_to_l1_vtiled_lsb(fill_dsc);
             break;
 #endif
         default:
+            if(LV_COLOR_FORMAT_IS_L1(layer_cf)) {
+                LV_LOG_WARN("L1 color format 0x%02X not supported by the sw renderer", layer_cf);
+            }
             break;
     }
 }
@@ -282,12 +309,30 @@ static inline void LV_ATTRIBUTE_FAST_MEM lv_draw_sw_blend_image(lv_color_format_
             lv_draw_sw_blend_image_to_al88(image_dsc);
             break;
 #endif
-#if LV_DRAW_SW_SUPPORT_L1
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_MSB
         case LV_COLOR_FORMAT_L1_HTILED_MSB:
-            lv_draw_sw_blend_image_to_l1(image_dsc);
+            lv_draw_sw_blend_image_to_l1_htiled_msb(image_dsc);
+            break;
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_HTILED_LSB
+        case LV_COLOR_FORMAT_L1_HTILED_LSB:
+            lv_draw_sw_blend_image_to_l1_htiled_lsb(image_dsc);
+            break;
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_MSB
+        case LV_COLOR_FORMAT_L1_VTILED_MSB:
+            lv_draw_sw_blend_image_to_l1_vtiled_msb(image_dsc);
+            break;
+#endif
+#if LV_DRAW_SW_SUPPORT_L1_VTILED_LSB
+        case LV_COLOR_FORMAT_L1_VTILED_LSB:
+            lv_draw_sw_blend_image_to_l1_vtiled_lsb(image_dsc);
             break;
 #endif
         default:
+            if(LV_COLOR_FORMAT_IS_L1(layer_cf)) {
+                LV_LOG_WARN("L1 color format 0x%02X not supported by the sw renderer", layer_cf);
+            }
             break;
     }
 }

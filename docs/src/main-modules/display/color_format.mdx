@@ -9,7 +9,10 @@ you want explicitly rather than just its size:
 
 | `LV_COLOR_FORMAT_DEFAULT` | Size | Notes |
 |---|---|---|
-| <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_MSB" /> | 1 bit/pixel | Monochrome, horizontally mapped buffers only. See [Monochrome Displays](#monochrome-displays) |
+| <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_MSB" /> | 1 bit/pixel | Monochrome, 8 pixels per byte, horizontally (row-wise), MSB first. See [Monochrome Displays](#monochrome-displays) |
+| <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_LSB" /> | 1 bit/pixel | Monochrome, 8 pixels per byte, horizontally (row-wise), LSB first |
+| <ApiLink name="LV_COLOR_FORMAT_L1_VTILED_MSB" /> | 1 bit/pixel | Monochrome, 8 pixels per byte, vertically (column-wise), MSB first |
+| <ApiLink name="LV_COLOR_FORMAT_L1_VTILED_LSB" /> | 1 bit/pixel | Monochrome, 8 pixels per byte, vertically (column-wise), LSB first |
 | <ApiLink name="LV_COLOR_FORMAT_L8" /> | 1 byte/pixel | Gray-scale |
 | <ApiLink name="LV_COLOR_FORMAT_RGB565" /> | 2 bytes/pixel | Little-endian |
 | <ApiLink name="LV_COLOR_FORMAT_RGB565_SWAPPED" /> | 2 bytes/pixel | Big-endian. See [Swapping Endian-ness](#swapping-endian-ness) |
@@ -55,13 +58,21 @@ to
 ## Monochrome Displays
 
 LVGL supports rendering directly in a 1-bit format for monochrome displays.
-To enable it, set `LV_COLOR_FORMAT_DEFAULT` to <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_MSB" /> or use
-<ApiLink name="lv_display_set_color_format" display="lv_display_set_color_format(display, LV_COLOR_FORMAT_L1_HTILED_MSB)" />.
+To enable it, set `LV_COLOR_FORMAT_DEFAULT` to one of the L1 formats or use
+<ApiLink name="lv_display_set_color_format" display="lv_display_set_color_format(display, LV_COLOR_FORMAT_L1_...)" />.
 
-The <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_MSB" /> format is a luminance format (not an indexed one:
-there is no palette), each bit directly encodes the luminance (0 or 255). It assumes that bytes are mapped
-to rows (i.e., the bits of a byte are written next to each other).
-The order of bits is MSB first, which means:
+The L1 formats are luminance formats (not indexed: there is no palette), each bit
+directly encodes the luminance (0 or 255). There are four layouts:
+
+| Format | Tiling | Bit order |
+|---|---|---|
+| <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_MSB" /> | 8 horizontally neighboring pixels per byte | MSB first |
+| <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_LSB" /> | 8 horizontally neighboring pixels per byte | LSB first |
+| <ApiLink name="LV_COLOR_FORMAT_L1_VTILED_MSB" /> | 8 vertically stacked pixels of one column per byte | MSB first |
+| <ApiLink name="LV_COLOR_FORMAT_L1_VTILED_LSB" /> | 8 vertically stacked pixels of one column per byte | LSB first |
+
+For the htiling formats, bytes are mapped to rows (i.e., the bits of a byte are
+written next to each other). With MSB first:
 
 ```c
 MSB           LSB
@@ -76,18 +87,29 @@ pixels     0 1 2 3 4 5 6 7
           Left         Right
 ```
 
+For the vtiled formats, each byte packs 8 vertically stacked pixels of a single
+column (pixel 0 in the byte is the topmost of the 8), and a buffer "row" is
+`width` bytes long.
+
 Ensure that the LCD controller is configured accordingly.
 
-Internally, LVGL rounds the redrawn areas to byte boundaries. Therefore, updated areas will:
+LVGL rounds the redrawn areas to byte boundaries automatically: the htiling
+formats round the area's x coordinates, the vtiled formats round its y
+coordinates. Therefore, updated areas always:
 
 - start on an `Nx8` coordinate, and
 - end on an `Nx8 - 1` coordinate.
 
 As usual, monochrome displays support partial, full, and direct rendering modes as well.
-In full and direct modes, the buffer size should be large enough for the whole screen,
-meaning `horizontal_resolution x vertical_resolution / 8` bytes.
-As LVGL can not handle fractional width make sure to round the horizontal resolution
+In full and direct modes, the buffer size should be large enough for the whole screen:
+`horizontal_resolution x vertical_resolution / 8` bytes for the htiling formats, and
+`horizontal_resolution x ceil(vertical_resolution / 8)` bytes for the vtiled formats.
+As LVGL can not handle fractional widths, make sure to round the horizontal resolution
 to 8 bits (for example 90 to 96).
+
+Only <ApiLink name="LV_COLOR_FORMAT_L1_HTILED_MSB" /> images can be used as image
+sources; the other three layouts are destination formats. Each layout is enabled
+independently with the `LV_DRAW_SW_SUPPORT_L1_<LAYOUT>` configuration options.
 
 The <ApiLink name="lv_draw_l1_convert_to_vtiled" /> function is used to convert a draw
 buffer in L1 color format from a row-wise (htiled) to a column-wise (vtiled) buffer

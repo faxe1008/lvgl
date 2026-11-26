@@ -48,9 +48,30 @@ config LV_DRAW_SW_SUPPORT_A8
 	bool "A8"
 	default y
 
-config LV_DRAW_SW_SUPPORT_L1
-	bool "L1 (1 bit per pixel)"
+config LV_DRAW_SW_SUPPORT_L1_HTILED_MSB
+	bool "L1 (1 bit per pixel, htiling, MSB first)"
 	default y
+	select LV_DRAW_SW_SUPPORT_L1
+
+config LV_DRAW_SW_SUPPORT_L1_HTILED_LSB
+	bool "L1 (1 bit per pixel, htiling, LSB first)"
+	default n
+	select LV_DRAW_SW_SUPPORT_L1
+
+config LV_DRAW_SW_SUPPORT_L1_VTILED_MSB
+	bool "L1 (1 bit per pixel, vtiled, MSB first)"
+	default n
+	select LV_DRAW_SW_SUPPORT_L1
+
+config LV_DRAW_SW_SUPPORT_L1_VTILED_LSB
+	bool "L1 (1 bit per pixel, vtiled, LSB first)"
+	default n
+	select LV_DRAW_SW_SUPPORT_L1
+
+config LV_DRAW_SW_SUPPORT_L1
+	bool
+	help
+		Internal flag: enabled when any of the L1 layout variants is supported.
 
 config LV_DRAW_SW_L1_LUM_THRESHOLD
 	int "L1 luminance threshold"

@@ -130,7 +130,10 @@
 
 /** Default color format
  *  Possible values:
- *  - LV_COLOR_FORMAT_L1: L1 (1 bit per pixel)
+ *  - LV_COLOR_FORMAT_L1: L1 (1 bit per pixel, htiling, MSB first)
+ *  - LV_COLOR_FORMAT_L1_HTILED_LSB: L1 (1 bit per pixel, htiling, LSB first)
+ *  - LV_COLOR_FORMAT_L1_VTILED_MSB: L1 (1 bit per pixel, vtiled, MSB first)
+ *  - LV_COLOR_FORMAT_L1_VTILED_LSB: L1 (1 bit per pixel, vtiled, LSB first)
  *  - LV_COLOR_FORMAT_L8
  *  - LV_COLOR_FORMAT_RGB565
  *  - LV_COLOR_FORMAT_RGB565_SWAPPED: RGB565 (Big-endian)
@@ -257,14 +260,20 @@
 /** A8 */
 #define LV_DRAW_SW_SUPPORT_A8 1
 
-/** L1 (1 bit per pixel) */
-#define LV_DRAW_SW_SUPPORT_L1 1
+/** L1 (1 bit per pixel, htiling, MSB first) */
+#define LV_DRAW_SW_SUPPORT_L1_HTILED_MSB 1
 
-#if LV_DRAW_SW_SUPPORT_L1
+/** L1 (1 bit per pixel, htiling, LSB first) */
+#define LV_DRAW_SW_SUPPORT_L1_HTILED_LSB 0
+
+/** L1 (1 bit per pixel, vtiled, MSB first) */
+#define LV_DRAW_SW_SUPPORT_L1_VTILED_MSB 0
+
+/** L1 (1 bit per pixel, vtiled, LSB first) */
+#define LV_DRAW_SW_SUPPORT_L1_VTILED_LSB 0
+
 /** Pixels brighter than this luminance become active (set) when rendering to L1. */
 #define LV_DRAW_SW_L1_LUM_THRESHOLD 127
-
-#endif /*LV_DRAW_SW_SUPPORT_L1*/
 
 #if LV_USE_OS != LV_OS_NONE
 /** Number of threads used to render a frame in parallel */

@@ -101,6 +101,9 @@ lv_result_t lv_snapshot_take_to_draw_buf(lv_obj_t * obj, lv_color_format_t cf, l
         case LV_COLOR_FORMAT_A8:
         case LV_COLOR_FORMAT_L8:
         case LV_COLOR_FORMAT_L1_HTILED_MSB:
+        case LV_COLOR_FORMAT_L1_HTILED_LSB:
+        case LV_COLOR_FORMAT_L1_VTILED_MSB:
+        case LV_COLOR_FORMAT_L1_VTILED_LSB:
         case LV_COLOR_FORMAT_ARGB2222:
         case LV_COLOR_FORMAT_ARGB4444:
         case LV_COLOR_FORMAT_ARGB1555:

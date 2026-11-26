@@ -34,6 +34,14 @@ All of the below format names are used in code by prefixing them with
 
 [^1]: The `L1` and the `I2`, `I4` and `I8` indexed formats require <ApiLink name="LV_DRAW_SW_SUPPORT_ARGB8888" /> to be configured to `1` in your `lv_conf.h` file.  Palette colors are always `ARGB8888` (`L1` has no palette: each bit directly encodes a luminance).
 
+In addition to `L1_HTILED_MSB`, three more `L1` layouts exist
+(<ApiLink name="LV_COLOR_FORMAT_L1_HTILED_LSB" />,
+<ApiLink name="LV_COLOR_FORMAT_L1_VTILED_MSB" /> and
+<ApiLink name="LV_COLOR_FORMAT_L1_VTILED_LSB" />). They are destination-only:
+LVGL can render to them (e.g. as a display format), but images in these layouts
+cannot be decoded. See [Color Format](/main-modules/display/color_format) for
+the layout details.
+
 [^2]: Custom formats can be supported by specifying one of the RAW color formats and using an external [image decoder](/main-modules/images/decoders) to decode it. See [Image Decoders](/main-modules/images/decoders).
 
 ## Built-In Input and Output Formats

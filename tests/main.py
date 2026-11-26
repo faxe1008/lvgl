@@ -112,6 +112,10 @@ test_options = {
         "description": "NanoVG headless rendering with EGL and glTF, 32 bit color depth",
         "defconfigs": ["full", "depth_32", HOST, "sys_heap", "run_tests", "nanovg"],
     },
+    "OPTIONS_TEST_L1_FORMATS": {
+        "description": "Test config with all four L1 (1 bit per pixel) layouts enabled",
+        "defconfigs": ["full", "depth_32", HOST, "sys_heap", "run_tests", "l1_formats"],
+    },
 }
 
 

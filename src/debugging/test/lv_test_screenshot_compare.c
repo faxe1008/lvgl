@@ -304,14 +304,27 @@ static void buf_to_xrgb8888(const lv_draw_buf_t * draw_buf, uint8_t * buf_out)
             buf_out += draw_buf->header.w * 4;
         }
     }
-    else if(cf_in == LV_COLOR_FORMAT_L1_HTILED_MSB) {
+    else if(LV_COLOR_FORMAT_IS_L1(cf_in)) {
+        const bool vtiled = LV_COLOR_FORMAT_IS_L1_VTILED(cf_in);
+        const bool lsb = LV_COLOR_FORMAT_IS_L1_LSB(cf_in);
         uint32_t y;
         for(y = 0; y < draw_buf->header.h; y++) {
             uint32_t x;
             for(x = 0; x < draw_buf->header.w; x++) {
-                const uint8_t byte = buf_in[x / 8] ;
-                const uint8_t bit_pos = x % 8;
-                const uint8_t pixel = (byte >> (7 - bit_pos)) & 0x01;
+                uint8_t pixel;
+                if(vtiled) {
+                    /*One byte per column holds 8 vertically stacked pixels*/
+                    const uint8_t byte = buf_in[(y / 8) * stride + x];
+                    const uint32_t bit_pos = y % 8;
+                    pixel = lsb ? (uint8_t)((byte >> bit_pos) & 0x01)
+                            : (uint8_t)((byte >> (7 - bit_pos)) & 0x01);
+                }
+                else {
+                    const uint8_t byte = buf_in[y * stride + x / 8];
+                    const uint32_t bit_pos = x % 8;
+                    pixel = lsb ? (uint8_t)((byte >> bit_pos) & 0x01)
+                            : (uint8_t)((byte >> (7 - bit_pos)) & 0x01);
+                }
 
                 buf_out[x * 4 + 3] = 0xff;
                 buf_out[x * 4 + 2] = pixel ? 0xff : 0x00;
@@ -319,7 +332,6 @@ static void buf_to_xrgb8888(const lv_draw_buf_t * draw_buf, uint8_t * buf_out)
                 buf_out[x * 4 + 0] = pixel ? 0xff : 0x00;
             }
 
-            buf_in += stride;
             buf_out += draw_buf->header.w * 4;
         }
     }
